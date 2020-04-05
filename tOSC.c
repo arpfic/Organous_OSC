@@ -231,7 +231,9 @@ static int32_t tosc_vwrite(char *buffer, const int len,
       case 'f': {
         if (i + 4 > len) return -3;
         const float f = (float) va_arg(ap, double);
-        encode_uint32_t(f, (buffer + i));
+        // small (but BIG) bug in mbed
+        // encode_uint32_t(f, (buffer + i));
+        encode_uint32_t(*((uint32_t*)&f), (buffer + i));
         i += 4;
         break;
       }

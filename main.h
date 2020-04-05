@@ -1,16 +1,19 @@
-#if !FEATURE_LWIP
-    #error [NOT_SUPPORTED] LWIP not supported for this target
-#endif
+//#if !FEATURE_LWIP
+//    #error [NOT_SUPPORTED] LWIP not supported for this target
+//#endif
 
-#include "mbed.h"
-#include "config.h"
-#include "BufferedSerial.h"
 #include "EthernetInterface.h"
+#include "mbed.h"
+#include "nsapi_types.h"
+#include "string.h"
+#include "config.h"
+#include "main_debug.h"
+#include "BufferedSerial.h"
 #include "UDPSocket.h"
-#include "OSC.h"
 #include "FastPWM.h"
 #include "main_driver_hal.h"
 #include "PCA9956A.h"
+#include "tOSC.h"
 
 DigitalOut driver_a_table[ENABLE_PINS] = {
     DRV_EN1,  DRV_EN2,  DRV_EN3,  DRV_EN4,  DRV_EN5,  DRV_EN6,  DRV_EN7,  DRV_EN8,
@@ -25,13 +28,24 @@ DRV_EN41, DRV_EN42, DRV_EN43, DRV_EN44, DRV_EN45, DRV_EN46, DRV_EN47, DRV_EN48
     };
 
 static void handle_socket();
-static void send_message();
 static void receive_message();
-void onOSCReceiveEvent();
-void debugOSCmsgON();
-void debugOSC(char* debug_msg);
-static void debugUDPmsg(char*, int);
-void pressed();
-void released();
+void handler_Packetevent();
+void init_msgON();
+static void debug_OSC(const char* incoming_msg);
+static void debug_OSCmsg(char* incoming_msg, int in_length);
+static void send_UDPmsg(char*, int);
+void button_pressed();
+void button_released();
+void menu_main();
+void menu_tools();
+void menu_tools_connect();
+void menu_tools_debug();
+void menu_tools_hardreset();
+void menu_tools_softreset();
+void menu_main_coil();
+void menu_main_off_all();
+void menu_main_pwm_all();
+void menu_main_oe();
+void menu_main_tone();
 int main();
-void sampler_timer(void);
+void sampler_timer();

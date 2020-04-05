@@ -9,8 +9,15 @@
 // Commencer à compter à 1 ?
 #define HUMAN_OFFSET                            1
 
-/* DEFAULTS
- * Coil :
+/* -----------------------------------------------------------------------------
+ * LEDS
+ */
+#define LED_GREEN                               LED1
+#define LED_BLUE                                LED2
+#define LED_RED                                 LED3
+
+/* -----------------------------------------------------------------------------
+ * COIL DEFAULTS SET'S
  * - attack delay before sustain (millisec)
  * - attack value  (0.0-1.0)
  * - sustain value (0.0-1.0)
@@ -18,12 +25,13 @@
 #define COIL_ATTACK_DELAY                       20
 #define COIL_ATTACK                             (float)1.0
 #define COIL_SUSTAIN                            (float)0.5
+
 /* -----------------------------------------------------------------------------
  * OSC
  */
 #define OSC_CLIENT_PORT                         12345
 #define DEBUG_PORT                              12346
-#define RECEIVE_LENGTH                          256
+#define MAX_PQT_LENGTH                          1024
 
 /* -----------------------------------------------------------------------------
  * DRIVER ENABLE TABLE

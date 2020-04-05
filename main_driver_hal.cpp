@@ -49,7 +49,7 @@ void CoilDriver::on(int port, float percent)
 {
     if (percent >= 0.0f && percent <= 1.0f) {
         if (port == ALLPORTS) {
-            for (int i = 0; i <= ENABLE_PINS; i++) {
+            for (int i = 0; i < ENABLE_PINS; i++) {
                 drv_ena[i] = 1;
             }
         } else {
@@ -62,7 +62,7 @@ void CoilDriver::on(int port, float percent)
 void CoilDriver::off(int port)
 {
     if (port == ALLPORTS) {
-        for (int i = 0; i <= ENABLE_PINS; i++) {
+        for (int i = 0; i < ENABLE_PINS; i++) {
             drv_ena[i] = 0;
         }
     } else {
@@ -80,7 +80,7 @@ void CoilDriver::pwmSet(int port, float percent)
 void CoilDriver::drvEnable(int port, bool state)
 {
     if (port == ALLPORTS) {
-        for (int i = 0; i <= ENABLE_PINS; i++) {
+        for (int i = 0; i < ENABLE_PINS; i++) {
             drv_ena[i] = state;
         }
     } else {
