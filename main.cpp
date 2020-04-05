@@ -287,28 +287,6 @@ void init_msgON()
     led_green = !led_green;
 }
 
-static void debug_OSCmsg(char* incoming_msg, int in_length)
-{
-    char buffer[MAX_PQT_LENGTH];
-    int out_length = 0;
-
-    if (in_length <= MAX_PQT_LENGTH) {
-        out_length = debug_OSCwritemsg(incoming_msg, in_length, buffer);
-        send_UDPmsg(buffer, out_length);
-    }
-}
-
-static void debug_OSC(const char* incoming_msg)
-{
-    char buffer[MAX_PQT_LENGTH];
-    int out_length = 0;
-
-    if (strlen(incoming_msg) < MAX_PQT_LENGTH) {
-        out_length = debug_OSCwrite((char *)incoming_msg, buffer);
-        send_UDPmsg(buffer, out_length);
-    }
-}
-
 static void send_UDPmsg(char* incoming_msg, int in_length)
 {
     source_addr->set_ip_address(master_address);

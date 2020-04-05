@@ -6,8 +6,8 @@
 
 // b-side présent ?
 #define B_SIDE                                  0
-// Commencer à compter à 1 ?
-#define HUMAN_OFFSET                            1
+// Commencer à compter à 1 ? No effect
+#define HUMAN_OFFSET                            0
 
 /* -----------------------------------------------------------------------------
  * LEDS

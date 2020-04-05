@@ -1,3 +1,6 @@
+#ifndef _MAIN_H
+#define _MAIN_H
+
 //#if !FEATURE_LWIP
 //    #error [NOT_SUPPORTED] LWIP not supported for this target
 //#endif
@@ -47,5 +50,29 @@ void menu_main_off_all();
 void menu_main_pwm_all();
 void menu_main_oe();
 void menu_main_tone();
-int main();
 void sampler_timer();
+int main();
+
+static void debug_OSCmsg(char* incoming_msg, int in_length)
+{
+    char buffer[MAX_PQT_LENGTH];
+    int out_length = 0;
+
+    if (in_length <= MAX_PQT_LENGTH) {
+        out_length = debug_OSCwritemsg(incoming_msg, in_length, buffer);
+        send_UDPmsg(buffer, out_length);
+    }
+}
+
+static void debug_OSC(const char* incoming_msg)
+{
+    char buffer[MAX_PQT_LENGTH];
+    int out_length = 0;
+
+    if (strlen(incoming_msg) < MAX_PQT_LENGTH) {
+        out_length = debug_OSCwrite((char *)incoming_msg, buffer);
+        send_UDPmsg(buffer, out_length);
+    }
+}
+
+#endif // _MAIN_H
