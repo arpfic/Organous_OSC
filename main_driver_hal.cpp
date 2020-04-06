@@ -38,6 +38,9 @@ void CoilDriver::init( void )
     i2c.frequency(1000000);
     led_drv.current(ALLPORTS, 0.5); //  Set all ports output current 50%
     led_drv.pwm(ALLPORTS, 1.0); //  Set all ports output current 50%
+    // Init the register
+    for (int i = 0; i < ENABLE_PINS; i++)
+        OUTRegister[i] = OUT_IDLE;
     // oe = 0 means always on
     oe.write(0.0f);
     oe.period(1.0f);
@@ -50,12 +53,23 @@ void CoilDriver::on(int port, float percent)
     if (percent >= 0.0f && percent <= 1.0f) {
         if (port == ALLPORTS) {
             for (int i = 0; i < ENABLE_PINS; i++) {
+                // Enable the OUT
                 drv_ena[i] = 1;
+                // Increment if not already to max
+                if (OUTRegister[i] < MAX_OUT_ENABLED) {
+                    OUTRegister[i] = OUTRegister[i] + OUT_ENABLED1;
+                }
             }
         } else {
+            // Enable the OUT
             drv_ena[port] = 1;
+            // Increment if not already to max
+            if (OUTRegister[port] < MAX_OUT_ENABLED) {
+                OUTRegister[port] = OUTRegister[port] + OUT_ENABLED1;
+            }
         }
-        led_drv.pwm( port, (float)1.0 - percent );
+        // NB: ALLPORTS is already implemented into Class
+        led_drv.pwm(port, (float)1.0 - percent);
     }
 }
 
@@ -63,12 +77,40 @@ void CoilDriver::off(int port)
 {
     if (port == ALLPORTS) {
         for (int i = 0; i < ENABLE_PINS; i++) {
-            drv_ena[i] = 0;
+            // Decrement and do nothing more if more than OUT_ENABLED1
+            if (OUTRegister[i] > OUT_ENABLED1) {
+                OUTRegister[i] = OUTRegister[i] - OUT_ENABLED1;
+            } else if (OUTRegister[i] == OUT_ENABLED1 || OUTRegister[i] == OUT_IDLE) {
+                // Set to IDLE AND disable OUT
+                OUTRegister[i] = OUT_IDLE;
+                drv_ena[i] = 0;
+                led_drv.pwm(i, (float)1.0);
+            }
         }
     } else {
-        drv_ena[port] = 0;
+        if (OUTRegister[port] > OUT_ENABLED1) {
+            OUTRegister[port] = OUTRegister[port] - OUT_ENABLED1;
+        } else if (OUTRegister[port] == OUT_ENABLED1 || OUTRegister[port] == OUT_IDLE) {
+            OUTRegister[port] = OUT_IDLE;
+            drv_ena[port] = 0;
+            led_drv.pwm(port, (float)1.0);
+        }
     }
-    led_drv.pwm( port, (float)1.0 );
+}
+
+void CoilDriver::forceoff(int port)
+{
+    if (port == ALLPORTS) {
+        for (int i = 0; i < ENABLE_PINS; i++) {
+            OUTRegister[i] = OUT_IDLE;
+            drv_ena[i] = 0;
+            led_drv.pwm(i, (float)1.0);
+        }
+    } else {
+        OUTRegister[port] = OUT_IDLE;
+        drv_ena[port] = 0;
+        led_drv.pwm(port, (float)1.0);
+    }
 }
 
 void CoilDriver::pwmSet(int port, float percent)

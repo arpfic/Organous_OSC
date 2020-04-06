@@ -37,6 +37,7 @@
  * DRIVER ENABLE TABLE
  */
 #define ENABLE_PINS                             24
+#define MAX_OUT_ENABLED                         OUT_ENABLED4
 /* a-side (right) : OUT 1-24 
  */
 #define DRV_EN1                                 PC_10

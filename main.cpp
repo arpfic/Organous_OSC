@@ -9,7 +9,7 @@ EthernetInterface *eth;
 UDPSocket *my_socket;
 SocketAddress *source_addr;
 
-EventQueue queue;
+EventQueue queue(128 * EVENTS_EVENT_SIZE);
 Thread thrd;
 
 tosc_message* p_osc;
@@ -33,11 +33,11 @@ menu_cases tools_cases [] = {
 };
 
 menu_cases main_cases [] = {
-    { "/main/coil",     menu_main_coil },
-    { "/main/off_all",  menu_main_off_all },
-    { "/main/pwm_all",  menu_main_pwm_all },
-    { "/main/oe",       menu_main_oe },
-    { "/main/tone",     menu_main_tone }
+    { "/main/coil",         menu_main_coil },
+    { "/main/forceoff_all",  menu_main_forceoff_all },
+    { "/main/pwm_all",      menu_main_pwm_all },
+    { "/main/oe",           menu_main_oe },
+    { "/main/tone",         menu_main_tone }
 };
 
 // Drivers
@@ -52,7 +52,7 @@ char*   master_address;
 // Debug
 char    debug_on = 0;
 
-// Little sampler ticker/timer
+// Little sampler ticker/timer (beta)
 volatile int k = 0;
 float sinusoid_data[128];
 Ticker sample_ticker;
@@ -93,22 +93,22 @@ void menu_tools_connect()
     delete source_addr;
     source_addr = new SocketAddress;
 
-    debug_OSC("OK");
+    queue.call(debug_OSC, "OK");
     if (debug_on == 1)
-        debug_OSC(master_address);
+        queue.call(debug_OSC, master_address);
 }
 
 void menu_tools_debug()
 {
     debug_on = 1;
-    debug_OSC("DEBUG ON");
+    queue.call(debug_OSC, "DEBUG ON");
 }
 
 void menu_tools_hardreset()
 {
     // On montre l'activité
     led_green = led_blue = led_red = 1;
-    debug_OSC("REBOOTING...");
+    queue.call(debug_OSC, "REBOOTING...");
     //wait(1);
     // Ticker destruct
     sample_ticker.detach();
@@ -128,11 +128,12 @@ void menu_tools_softreset()
 {
     // On montre l'activité
     led_green = led_blue = led_red = 1;
+    queue.call(debug_OSC, "RESET STATES...");
     // Ticker destruct
     sample_ticker.detach();
     // Set All enables to 0
-    driver_A->off(ALLPORTS);
-    driver_B->off(ALLPORTS);
+    driver_A->forceoff(ALLPORTS);
+    driver_B->forceoff(ALLPORTS);
     // Deleting all objects for reninit
     delete driver_A;
     delete driver_B;
@@ -167,12 +168,12 @@ void menu_main_coil()
     }
 }
 
-void menu_main_off_all()
+void menu_main_forceoff_all()
 {
     // On montre l'activité
     led_blue = !led_blue;
-    driver_A->off(ALLPORTS);
-    driver_B->off(ALLPORTS);
+    driver_A->forceoff(ALLPORTS);
+    driver_B->forceoff(ALLPORTS);
     driver_A->oeCycle(0.0f);
     driver_A->oePeriod(1.0f);
     driver_B->oeCycle(0.0f);
@@ -187,8 +188,15 @@ void menu_main_pwm_all()
     if (p_osc->format[0] == 'f') {
         float pwm = tosc_getNextFloat(p_osc);
         if (pwm > 0 && pwm <=1 ) {
-            driver_A->on(ALLPORTS, pwm);
-            driver_B->on(ALLPORTS, pwm);
+            driver_A->pwmSet(ALLPORTS, pwm);
+            driver_B->pwmSet(ALLPORTS, pwm);
+            driver_A->drvEnable(ALLPORTS, true);
+            driver_B->drvEnable(ALLPORTS, true);
+        } else if (pwm == 0.0f) {
+            driver_A->pwmSet(ALLPORTS, pwm);
+            driver_B->pwmSet(ALLPORTS, pwm);
+            driver_A->drvEnable(ALLPORTS, false);
+            driver_B->drvEnable(ALLPORTS, false);
         }
     }
 }
@@ -254,7 +262,7 @@ void menu_tools()
 void handler_Packetevent()
 {
     if (debug_on == 1)
-        debug_OSCmsg(mainpacket_buffer, mainpacket_length);
+        queue.call(debug_OSCmsg, mainpacket_buffer, mainpacket_length);
 
     tosc_message osc;
     p_osc = &osc;
@@ -282,7 +290,7 @@ void init_msgON()
     sprintf(buffer + strlen(buffer), " PLEASE CONNECT !");
 
     debug_OSC(buffer);
-    
+
     // Everything is OK
     led_green = !led_green;
 }
@@ -324,6 +332,20 @@ void eth_status_callback(nsapi_event_t status, intptr_t param)
         NVIC_SystemReset(); // Just reset the main board
 }
 
+
+void driver_A_error_handler()
+{
+    debug_OSC("OVERCURRENT ERROR on card A. Please reset");
+    led_red = 1;
+}
+
+void driver_B_error_handler()
+{
+    debug_OSC("OVERCURRENT ERROR on card B. Please reset");
+    led_red = 1;
+}
+
+
 int main()
 {
     // Init ip to broadcast
@@ -334,6 +356,10 @@ int main()
                               DRV_A_FAULT, driver_a_table, 0xD2);
     driver_B = new CoilDriver(PCA_B_SDA, PCA_B_SCL, PCA_B_OE, DRV_B_RST,
                               DRV_B_FAULT, driver_b_table, 0x2A);
+
+    // Set-up driver_A & driver_B error feedbacks
+    driver_A->drv_fault.fall(queue.event(driver_A_error_handler));
+    driver_B->drv_fault.fall(queue.event(driver_B_error_handler));
 
     // Set-up button
     button.fall(&button_released);
@@ -359,7 +385,7 @@ int main()
     thrd.start(callback(&queue, &EventQueue::dispatch_forever));
 
     // Send Up message to broadcast
-    init_msgON();
+    queue.call(init_msgON);
 
     // precompute 128 sample points on one sine wave cycle
     // used for continuous sine wave output later
