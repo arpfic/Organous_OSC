@@ -5,7 +5,7 @@
 #define IF_NAME                                 "SURAIGU mod."
 
 // b-side présent ?
-#define B_SIDE                                 0
+#define B_SIDE                                 1
 
 /* -----------------------------------------------------------------------------
  * LEDS
@@ -22,7 +22,7 @@
  */
 #define COIL_ATTACK_DELAY                       20
 #define COIL_ATTACK                             (float)1.0
-#define COIL_SUSTAIN                            (float)0.5
+#define COIL_SUSTAIN                            (float)0.8
 
 /* -----------------------------------------------------------------------------
  * OSC

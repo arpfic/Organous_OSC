@@ -11,6 +11,7 @@
 #include "string.h"
 #include "config.h"
 #include "main_debug.h"
+#include "PinDetect.h"
 #include "BufferedSerial.h"
 #include "UDPSocket.h"
 #include "FastPWM.h"

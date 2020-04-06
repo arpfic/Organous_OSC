@@ -3,6 +3,7 @@
 
 #include "mbed.h"
 #include "config.h"
+#include "PinDetect.h"
 #include "FastPWM.h"
 #include "PCA9956A.h"
 
@@ -44,7 +45,7 @@ public:
                char _i2c_addr = DEFAULT_I2C_TAG);
 
     DigitalOut drv_rst;
-    InterruptIn drv_fault;
+    PinDetect drv_fault;
     DigitalOut* drv_ena;
 
     void    on(int port, float percent);

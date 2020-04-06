@@ -11,6 +11,8 @@ SocketAddress *source_addr;
 
 EventQueue queue(256 * EVENTS_EVENT_SIZE);
 Thread thrd;
+Thread *thread_errA;
+Thread *thread_errB;
 
 tosc_message* p_osc;
 
@@ -160,7 +162,11 @@ void menu_main_coil()
         int release = tosc_getNextInt32(p_osc);
         if (tone >= 0 && tone < 24 ) {
             if (release == 0) {
-                if (debug_on) {char buf[64]; sprintf(buf, "COIL %i : %i use(s)", tone, (int)driver_A->OUTRegister[tone]); debug_OSC(buf);}
+                if (debug_on) {
+                    char buf[64];
+                    sprintf(buf, "COIL %i : %i use(s)", tone, (int)driver_A->OUTRegister[tone]);
+                    debug_OSC(buf);
+                }
                 driver_A->coilOff(tone);
             } else {
                 driver_A->coilOn(tone);
@@ -168,7 +174,11 @@ void menu_main_coil()
 #if B_SIDE == 1
         } else if (tone >= 24 && tone < 48 ) {
             if (release == 0) {
-                if (debug_on) {char buf[64]; sprintf(buf, "COIL %i : %i use(s)", tone, (int)driver_B->OUTRegister[tone - 24]); debug_OSC(buf);}
+                if (debug_on) {
+                    char buf[64];
+                    sprintf(buf, "COIL %i : %i use(s)", tone, (int)driver_B->OUTRegister[tone - 24]);
+                    debug_OSC(buf);
+                }
                 driver_B->coilOff(tone - 24);
             } else {
                 driver_B->coilOn(tone - 24);
@@ -369,7 +379,6 @@ void driver_B_error_handler()
     led_red = 1;
 }
 
-
 int main()
 {
     // Init ip to broadcast
@@ -379,12 +388,19 @@ int main()
     driver_A = new CoilDriver(PCA_A_SDA, PCA_A_SCL, PCA_A_OE, DRV_A_RST,
                               DRV_A_FAULT, driver_a_table, 0xD2);
     // Set-up driver_A & driver_B error feedbacks
-    driver_A->drv_fault.fall(queue.event(driver_A_error_handler));
-
+    //driver_A->drv_fault.fall(queue.event(driver_A_error_handler));
+    //driver_A->drv_fault.mode( PullDown );
+    driver_A->drv_fault.attach_asserted_held(queue.event(driver_A_error_handler));
+    driver_A->drv_fault.setSamplesTillHeld(20);
+    driver_A->drv_fault.setAssertValue(0);
+    driver_A->drv_fault.setSampleFrequency();
 #if B_SIDE == 1
     driver_B = new CoilDriver(PCA_B_SDA, PCA_B_SCL, PCA_B_OE, DRV_B_RST,
                               DRV_B_FAULT, driver_b_table, 0x2A);
-    driver_B->drv_fault.fall(queue.event(driver_B_error_handler));
+    driver_B->drv_fault.attach_asserted_held(queue.event(driver_B_error_handler));
+    driver_B->drv_fault.setSamplesTillHeld(20);
+    driver_B->drv_fault.setAssertValue(0);
+    driver_B->drv_fault.setSampleFrequency();
 #endif
 
     // Set-up button
