@@ -9,7 +9,7 @@ EthernetInterface *eth;
 UDPSocket *my_socket;
 SocketAddress *source_addr;
 
-EventQueue queue(128 * EVENTS_EVENT_SIZE);
+EventQueue queue(256 * EVENTS_EVENT_SIZE);
 Thread thrd;
 
 tosc_message* p_osc;
@@ -42,7 +42,9 @@ menu_cases main_cases [] = {
 
 // Drivers
 CoilDriver* driver_A;
+#if B_SIDE == 1
 CoilDriver* driver_B;
+#endif
 
 // Packet size limitation = MAX_PQT_LENGTH
 char    mainpacket_buffer[MAX_PQT_LENGTH];
@@ -93,28 +95,30 @@ void menu_tools_connect()
     delete source_addr;
     source_addr = new SocketAddress;
 
-    queue.call(debug_OSC, "OK");
-    if (debug_on == 1)
-        queue.call(debug_OSC, master_address);
+    debug_OSC("OK");
+    if (debug_on)
+        debug_OSC(master_address);
 }
 
 void menu_tools_debug()
 {
     debug_on = 1;
-    queue.call(debug_OSC, "DEBUG ON");
+    debug_OSC("DEBUG ON");
 }
 
 void menu_tools_hardreset()
 {
     // On montre l'activité
     led_green = led_blue = led_red = 1;
-    queue.call(debug_OSC, "REBOOTING...");
+    debug_OSC("REBOOTING...");
     //wait(1);
     // Ticker destruct
     sample_ticker.detach();
     // Delete classes
     delete driver_A;
+#if B_SIDE == 1
     delete driver_B;
+#endif
     delete eth;
     delete my_socket;
     delete source_addr;
@@ -128,20 +132,22 @@ void menu_tools_softreset()
 {
     // On montre l'activité
     led_green = led_blue = led_red = 1;
-    queue.call(debug_OSC, "RESET STATES...");
+    debug_OSC("RESET STATES...");
     // Ticker destruct
     sample_ticker.detach();
     // Set All enables to 0
     driver_A->forceoff(ALLPORTS);
-    driver_B->forceoff(ALLPORTS);
     // Deleting all objects for reninit
     delete driver_A;
-    delete driver_B;
     // Create new objects
     driver_A = new CoilDriver(PCA_A_SDA, PCA_A_SCL, PCA_A_OE, DRV_A_RST,
                               DRV_A_FAULT, driver_a_table, 0xD2);
+#if B_SIDE == 1
+    driver_B->forceoff(ALLPORTS);
+    delete driver_B;
     driver_B = new CoilDriver(PCA_B_SDA, PCA_B_SCL, PCA_B_OE, DRV_B_RST,
                               DRV_B_FAULT, driver_b_table, 0x2A);
+#endif
     led_green = led_blue = led_red = 0;
 }
 
@@ -154,16 +160,20 @@ void menu_main_coil()
         int release = tosc_getNextInt32(p_osc);
         if (tone >= 0 && tone < 24 ) {
             if (release == 0) {
+                if (debug_on) {char buf[64]; sprintf(buf, "COIL %i : %i use(s)", tone, (int)driver_A->OUTRegister[tone]); debug_OSC(buf);}
                 driver_A->coilOff(tone);
             } else {
                 driver_A->coilOn(tone);
             }
+#if B_SIDE == 1
         } else if (tone >= 24 && tone < 48 ) {
             if (release == 0) {
+                if (debug_on) {char buf[64]; sprintf(buf, "COIL %i : %i use(s)", tone, (int)driver_B->OUTRegister[tone - 24]); debug_OSC(buf);}
                 driver_B->coilOff(tone - 24);
             } else {
                 driver_B->coilOn(tone - 24);
             }
+#endif
         }
     }
 }
@@ -173,12 +183,14 @@ void menu_main_forceoff_all()
     // On montre l'activité
     led_blue = !led_blue;
     driver_A->forceoff(ALLPORTS);
-    driver_B->forceoff(ALLPORTS);
     driver_A->oeCycle(0.0f);
     driver_A->oePeriod(1.0f);
+#if B_SIDE == 1
+    driver_B->forceoff(ALLPORTS);
     driver_B->oeCycle(0.0f);
     driver_B->oePeriod(1.0f);
     sample_ticker.detach();
+#endif
 }
 
 void menu_main_pwm_all()
@@ -189,14 +201,18 @@ void menu_main_pwm_all()
         float pwm = tosc_getNextFloat(p_osc);
         if (pwm > 0 && pwm <=1 ) {
             driver_A->pwmSet(ALLPORTS, pwm);
-            driver_B->pwmSet(ALLPORTS, pwm);
             driver_A->drvEnable(ALLPORTS, true);
+#if B_SIDE == 1
+            driver_B->pwmSet(ALLPORTS, pwm);
             driver_B->drvEnable(ALLPORTS, true);
+#endif
         } else if (pwm == 0.0f) {
             driver_A->pwmSet(ALLPORTS, pwm);
-            driver_B->pwmSet(ALLPORTS, pwm);
             driver_A->drvEnable(ALLPORTS, false);
+#if B_SIDE == 1
+            driver_B->pwmSet(ALLPORTS, pwm);
             driver_B->drvEnable(ALLPORTS, false);
+#endif
         }
     }
 }
@@ -209,14 +225,18 @@ void menu_main_oe()
         float cycle = tosc_getNextFloat(p_osc);
         if (cycle > 0 && cycle <=1 ) {
             driver_A->oeCycle(cycle);
+#if B_SIDE == 1
             driver_B->oeCycle(cycle);
+#endif
         }
     }
     if (p_osc->format[1] == 'f') {
         float period = tosc_getNextFloat(p_osc);
         if (period > 0) {
             driver_A->oePeriod(period);
+#if B_SIDE == 1
             driver_B->oePeriod(period);
+#endif
         }
     }
 }
@@ -230,9 +250,11 @@ void menu_main_tone()
         if (tone >0) {
             // Little sampler Period init
             driver_A->oePeriod(1.0/200000.0);
+#if B_SIDE == 1
             driver_B->oePeriod(1.0/200000.0);
+#endif
             sample_ticker.detach();
-            sample_ticker.attach(&sampler_timer, 1.0/((tone)*64));
+            sample_ticker.attach_us(&sampler_timer, (tone)*128);
         }
     }
 }
@@ -262,7 +284,7 @@ void menu_tools()
 void handler_Packetevent()
 {
     if (debug_on == 1)
-        queue.call(debug_OSCmsg, mainpacket_buffer, mainpacket_length);
+        debug_OSCmsg(mainpacket_buffer, mainpacket_length);
 
     tosc_message osc;
     p_osc = &osc;
@@ -317,11 +339,13 @@ void button_released()
 // used to output next analog sample whenever a timer interrupt occurs
 void sampler_timer()
 {
-    driver_A->drvEnable(ALLPORTS, 1);
-    driver_B->drvEnable(ALLPORTS, 1);
+//    driver_A->drvEnable(ALLPORTS, 1);
+//    driver_B->drvEnable(ALLPORTS, 1);
     // send next analog sample out to D to A
     driver_A->oeCycle(sinusoid_data[k]);
+#if B_SIDE == 1
     driver_B->oeCycle(sinusoid_data[k]);
+#endif
     // increment pointer and wrap around back to 0 at 128
     k = (k+2) & 0x07F;
 }
@@ -354,12 +378,14 @@ int main()
 
     driver_A = new CoilDriver(PCA_A_SDA, PCA_A_SCL, PCA_A_OE, DRV_A_RST,
                               DRV_A_FAULT, driver_a_table, 0xD2);
-    driver_B = new CoilDriver(PCA_B_SDA, PCA_B_SCL, PCA_B_OE, DRV_B_RST,
-                              DRV_B_FAULT, driver_b_table, 0x2A);
-
     // Set-up driver_A & driver_B error feedbacks
     driver_A->drv_fault.fall(queue.event(driver_A_error_handler));
+
+#if B_SIDE == 1
+    driver_B = new CoilDriver(PCA_B_SDA, PCA_B_SCL, PCA_B_OE, DRV_B_RST,
+                              DRV_B_FAULT, driver_b_table, 0x2A);
     driver_B->drv_fault.fall(queue.event(driver_B_error_handler));
+#endif
 
     // Set-up button
     button.fall(&button_released);
@@ -385,7 +411,7 @@ int main()
     thrd.start(callback(&queue, &EventQueue::dispatch_forever));
 
     // Send Up message to broadcast
-    queue.call(init_msgON);
+    init_msgON();
 
     // precompute 128 sample points on one sine wave cycle
     // used for continuous sine wave output later
