@@ -17,3 +17,19 @@ BUGS:
 * Fonction tone cassée depuis la MAJ
 * Encore quelques derniers problèmes d'IP : /debug ss "SURAIGU mod. (v0.1):" "255.255.255.255"
 * -ok- OVERCURRENT fonction un peu bavarde ! Il faut tester avec un bon bouncing
+
+INSTALL MBED-CLI
+######
+
+* Télécharger : https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads
+```
+sudo apt install python2.7 python-pip git mercurial
+pip install mbed-cli
+mbed import https://github.com/arpfic/Organous_OSC.git
+cd Organous_OSC/mbed-os
+pip install -U -r requirements.txt
+cd ..
+mbed config -G GCC_ARM_PATH ~/Travaux/gcc-arm-none-eabi-9-2019-q4-major/bin
+mbed target NUCLEO_F767ZI
+mbed compile
+``````

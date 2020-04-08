@@ -7,12 +7,12 @@
 
 #include "EthernetInterface.h"
 #include "mbed.h"
+#include "BufferedSerial.h"
 #include "nsapi_types.h"
 #include "string.h"
 #include "config.h"
 #include "main_debug.h"
 #include "PinDetect.h"
-#include "BufferedSerial.h"
 #include "UDPSocket.h"
 #include "FastPWM.h"
 #include "main_driver_hal.h"
