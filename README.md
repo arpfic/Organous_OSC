@@ -1,9 +1,14 @@
 TODO:
 ######
 
-* -ok- Distinguer l'usage d'un seul ou des deux drivers à la fois
+* -not so ok- Distinguer l'usage d'un seul ou des deux drivers à la fois
 * Commenter le code
-* Faire un vrai README
+* Tester l'inversion 0->1 du pca99x6B au repos
+* Retourner un code d'erreur si aucun pca995xB n'est trouvé
+* Gérer les erreurs au niveau du pca995xB lui-même
+* Écrire un vrai README
+* Licencier le code correctement (À présent il y a du Apache/MIT)
+* Écrire une doc pour la carte elle-même
 * Créer un wrapper midi (et une interface qui émanciperait de puredata)
 
 BUGS:
