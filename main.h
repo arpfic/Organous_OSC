@@ -192,4 +192,12 @@ static void debug_OSC(const char* incoming_msg)
     }
 }
 
+
+static void send_UDPmsg(char* incoming_msg, int in_length)
+{
+    source_addr->set_ip_address(master_address);
+    source_addr->set_port(OSC_CLIENT_PORT);
+    my_socket->sendto(*(source_addr), incoming_msg, in_length);
+}
+
 #endif // _MAIN_H

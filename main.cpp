@@ -18,35 +18,41 @@
 */
 #include "main.h"
 
+// Handler
 static void handle_socket()
 {
     queue.call(receive_message);
 }
 
+// Read data from the socket
 static void receive_message()
 {
-    // Read data from the socket
+    // Zeroing the buffer
     memset(mainpacket_buffer, 0, sizeof(mainpacket_buffer));
     bool something_in_socket = true;
-    // read all messages
+    // Read all messages
     while (something_in_socket) {
         mainpacket_length = my_socket->recvfrom(source_addr,
                 mainpacket_buffer, sizeof(mainpacket_buffer) - 1);
         if (mainpacket_length > 0) {
             handler_Packetevent();
-        } else if (mainpacket_length!=NSAPI_ERROR_WOULD_BLOCK) {
+        } else if (mainpacket_length != NSAPI_ERROR_WOULD_BLOCK) {
             // Error while receiving
             led_red = !led_red;
             something_in_socket = false;
         } else {
-            // There was nothing to read.
+            // Or there was nothing to read.
             something_in_socket = false;
         }
     }
 }
 
+/* OSC msg  : /tools/connect NONE (Bang)
+ * Purpose  : connect NUCLEO_F767ZI to client (set IP address)
+ */
 void menu_tools_connect()
 {
+    // Copy IP from incoming packet
     strncpy(master_address, const_cast<char*>(source_addr->get_ip_address()), 16 * sizeof(char));
 
     // RE-assign socket with the new address
@@ -58,12 +64,18 @@ void menu_tools_connect()
         debug_OSC(master_address);
 }
 
+/* OSC msg  : /tools/debug NONE (Bang)
+ * Purpose  : set debug ON to send many messages to client
+ */
 void menu_tools_debug()
 {
     debug_on = 1;
     debug_OSC("DEBUG ON");
 }
 
+/* OSC msg  : /tools/hardreset NONE (Bang)
+ * Purpose  : Hard reset the board
+ */
 void menu_tools_hardreset()
 {
     // Blink for fun
@@ -86,6 +98,9 @@ void menu_tools_hardreset()
     //HAL_NVIC_SystemReset();
 }
 
+/* OSC msg  : /tools/softreset NONE (Bang)
+ * Purpose  : "Soft reset" the board : set to init as possible
+ */
 void menu_tools_softreset()
 {
     // Blink for fun
@@ -109,6 +124,10 @@ void menu_tools_softreset()
     led_green = led_blue = led_red = 0;
 }
 
+/* OSC msg  : /main/coil ii PORT INTENSITY
+ * Purpose  : drive coilOn/coilOff functions
+ * Note     : coilOff if INTENSITY == 0
+ */
 void menu_main_coil()
 {
     // Blink for fun
@@ -144,6 +163,9 @@ void menu_main_coil()
     }
 }
 
+/* OSC msg  : /main/forceoff_all NONE (Bang)
+ * Purpose  : re-init OE and call forceoff ALLPORTS
+ */
 void menu_main_forceoff_all()
 {
     // Blink for fun
@@ -159,6 +181,10 @@ void menu_main_forceoff_all()
 #endif
 }
 
+/* OSC msg  : /main/pwm_all f RATIO
+ * Purpose  : control blinking of all LEDS at the same time
+ * Note     : Can be used in conjunction with OE
+ */
 void menu_main_pwm_all()
 {
     // Blink for fun
@@ -183,6 +209,11 @@ void menu_main_pwm_all()
     }
 }
 
+/* OSC msg  : /main/oe ff CYCLE_RATIO PERIOD_SEC
+ * Purpose  : set OE FastPWM config and control blinking of all LEDS at the same time
+ * Note     : can be used in conjunction with other functions -- currently we DON'T
+ *            touch ENABLE table
+ */
 void menu_main_oe()
 {
     // Blink for fun
@@ -207,6 +238,10 @@ void menu_main_oe()
     }
 }
 
+/* OSC msg  : /main/tone f FREQ
+ * Purpose  : Play a "note" in class-D style OUT through all DRV8844 and with OE setting
+ * Note     : COMPLETELY BROKEN at this state and to be debbuged (with the new mbed-os)
+ */
 void menu_main_tone()
 {
     // Blink for fun
@@ -225,6 +260,7 @@ void menu_main_tone()
     }
 }
 
+// Menu parsers to function pointers.
 void menu_main()
 {
     for (menu_cases* p_case = main_cases;
@@ -247,6 +283,8 @@ void menu_tools()
     }
 }
 
+/* Here we realy decode OSC messages -- and we parse addr to menu subfunctions
+ */
 void handler_Packetevent()
 {
     if (debug_on == 1)
@@ -269,6 +307,8 @@ void handler_Packetevent()
     }
 }
 
+/* Init NUCLEO_F767ZI message. See main.h
+ */
 void init_msgON()
 {
     char buffer[MAX_PQT_LENGTH];
@@ -283,13 +323,8 @@ void init_msgON()
     led_green = !led_green;
 }
 
-static void send_UDPmsg(char* incoming_msg, int in_length)
-{
-    source_addr->set_ip_address(master_address);
-    source_addr->set_port(OSC_CLIENT_PORT);
-    my_socket->sendto(*(source_addr), incoming_msg, in_length);
-}
-
+/* Button basic functions : we just resend init_msgON() when pressed
+ */
 void button_pressed()
 {
     led_red = 1;
@@ -301,12 +336,12 @@ void button_released()
     led_red = 0;
 }
 
-// Interrupt routine
+// TONE experimental BROKED function -- Interrupt routine
 // used to output next analog sample whenever a timer interrupt occurs
 void sampler_timer()
 {
-//    driver_A->drvEnable(ALLPORTS, 1);
-//    driver_B->drvEnable(ALLPORTS, 1);
+    driver_A->drvEnable(ALLPORTS, 1);
+    driver_B->drvEnable(ALLPORTS, 1);
     // send next analog sample out to D to A
     driver_A->oeCycle(sinusoid_data[k]);
 #if B_SIDE == 1
@@ -316,13 +351,18 @@ void sampler_timer()
     k = (k+2) & 0x07F;
 }
 
+/* (Very) basic implementation of EthernetInterface Status callback : it just
+ * reset the board when disconnected. TODO: let's DO it better.
+ */
 void eth_status_callback(nsapi_event_t status, intptr_t param)
 {
     if (param != NSAPI_STATUS_GLOBAL_UP && param != NSAPI_STATUS_LOCAL_UP)
-        NVIC_SystemReset(); // Just reset the main board
+        NVIC_SystemReset(); // Just reset the main board and voilà !
 }
 
-
+/* Callbacks to DRV8844 error PINS PinDetect : means OVERCURRENT or OVERTEMP, etc.
+ * ---> We send an OSC Message
+ */
 void driver_A_error_handler()
 {
     debug_OSC("OVERCURRENT ERROR on card A. Please reset");
@@ -335,17 +375,18 @@ void driver_B_error_handler()
     led_red = 1;
 }
 
+/* MAIN function
+ */
 int main()
 {
-    // Init ip to broadcast
+    // Init master_address IP client to broadcast for convenience
     master_address = (char *)malloc(16 * sizeof(char));
     sprintf(master_address, "255.255.255.255");
 
+    // Init homemade CoilDriver class
     driver_A = new CoilDriver(PCA_A_SDA, PCA_A_SCL, PCA_A_OE, DRV_A_RST,
                               DRV_A_FAULT, driver_a_table, 0xD2);
-    // Set-up driver_A & driver_B error feedbacks
-    //driver_A->drv_fault.fall(queue.event(driver_A_error_handler));
-    //driver_A->drv_fault.mode( PullDown );
+    // Set-up driver_A error feedbacks with PinDetect
     driver_A->drv_fault.attach_asserted_held(queue.event(driver_A_error_handler));
     driver_A->drv_fault.setSamplesTillHeld(20);
     driver_A->drv_fault.setAssertValue(0);
@@ -363,40 +404,39 @@ int main()
     button.fall(&button_released);
     button.rise(&button_pressed);
 
+    // Set-up EthernetInterface in DHCP mode
     eth = new EthernetInterface;
     nsapi_error_t status = eth->connect();
-//    if (status < 0)
-//        NVIC_SystemReset();        // Just reset the main board
-    // In case of disconnection
+    // Attach to status callback
     eth->attach(&eth_status_callback);
-
+    // Set-up UDPSocket my_socket because OSC IS in UDP. TODO : try and benchmark TCP ?
     my_socket = new UDPSocket(eth);
     my_socket->set_blocking(false);
     my_socket->open(eth);
-
+    // Set-up SocketAddress source_addr
     source_addr = new SocketAddress;
-
+    // TCP/IP stuff. Bind UDPSocket to the OSC_CLIENT_PORT.
     while(my_socket->bind(OSC_CLIENT_PORT) != 0);
-    my_socket->sigio(callback(handle_socket));
 
-    // dispatch forever
+    // Callback ANY packet to handle_socket() -- here is the main magic function.
+    my_socket->sigio(callback(handle_socket));
+    // and... Dispatch forever the queue !
     thrd.start(callback(&queue, &EventQueue::dispatch_forever));
 
-    // Send Up message to broadcast
+    /* At this step we are "On the Air", so we can dend up a welcome message to
+     * broadcast. We can communicate in both sides with BROADCAST address, but it's
+     * important to connect each others with more intimity, because :
+     * more intimity == more efficiency
+     */
     init_msgON();
 
-    // precompute 128 sample points on one sine wave cycle
+    // BROKEN tone function : precompute 128 sample points on one sine wave cycle
     // used for continuous sine wave output later
     for(int i=0; i<128; i++) {
         sinusoid_data[i]=((1.0 + sin((float(i)/128.0*6.28318530717959)))/2.0);
     }
 
     while (true) {
-        /*
-        for ( int j = 0; j <= 23; j++ ) {
-            driver_B->coilOn(j);
-            wait(0.1);
-        }
-        */
+        // Not even sleep !
     }
 }
