@@ -26,6 +26,8 @@
 void tohex(unsigned char * in, size_t insz, char * out, size_t outsz);
 int debug_OSCwritemsg(char* incoming_msg, int length, char* outgoing_msg);
 int debug_OSCwrite(char* incoming_msg, char* outgoing_msg);
+static void debug_OSC(const char* incoming_msg);
+static void debug_OSCmsg(char* incoming_msg, int in_length);
 
 /* see https://stackoverflow.com/questions/6357031/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-in-c
  * outsz = 3x insz
@@ -97,6 +99,28 @@ int debug_OSCwrite(char* incoming_msg, char* outgoing_msg)
                   IF_NAME" ("SOFT_VER"):", incoming_msg);
 
     return len;
+}
+
+static void debug_OSCmsg(char* incoming_msg, int in_length)
+{
+    char buffer[MAX_PQT_LENGTH];
+    int out_length = 0;
+
+    if (in_length <= MAX_PQT_LENGTH) {
+        out_length = debug_OSCwritemsg(incoming_msg, in_length, buffer);
+        send_UDPmsg(buffer, out_length);
+    }
+}
+
+static void debug_OSC(const char* incoming_msg)
+{
+    char buffer[MAX_PQT_LENGTH];
+    int out_length = 0;
+
+    if (strlen(incoming_msg) < MAX_PQT_LENGTH) {
+        out_length = debug_OSCwrite((char *)incoming_msg, buffer);
+        send_UDPmsg(buffer, out_length);
+    }
 }
 
 #endif // _MAIN_DEBUG_

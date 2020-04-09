@@ -24,19 +24,12 @@
 #include "nsapi_types.h"
 #include "string.h"
 #include "config.h"
-#include "main_debug.h"
 #include "PinDetect.h"
 #include "UDPSocket.h"
 #include "FastPWM.h"
 #include "main_driver_hal.h"
 #include "PCA9956A.h"
 #include "tOSC.h"
-
-// main helpers : see below
-static void debug_OSC(const char* incoming_msg);
-static void debug_OSCmsg(char* incoming_msg, int in_length);
-// Send UDP packet through UDPSocket.
-static void send_UDPmsg(char*, int);
 
 // UDPSocket my_socket callback
 static void handle_socket();
@@ -57,6 +50,9 @@ void button_released();
 // Callbacks to DRV8844 error PINS PinDetect.
 void driver_A_error_handler();
 void driver_B_error_handler();
+
+// UP OSC messages to client(s)
+static void send_UDPmsg(char*, int);
 
 /* OSC menu parser. See main.cpp for details.
  */
@@ -166,38 +162,5 @@ menu_cases main_cases [] = {
     { "/main/oe",           menu_main_oe },
     { "/main/tone",         menu_main_tone }
 };
-
-/* -----------------------------------------------------------------------------
- * HELPERS functions.
- */
-static void debug_OSCmsg(char* incoming_msg, int in_length)
-{
-    char buffer[MAX_PQT_LENGTH];
-    int out_length = 0;
-
-    if (in_length <= MAX_PQT_LENGTH) {
-        out_length = debug_OSCwritemsg(incoming_msg, in_length, buffer);
-        send_UDPmsg(buffer, out_length);
-    }
-}
-
-static void debug_OSC(const char* incoming_msg)
-{
-    char buffer[MAX_PQT_LENGTH];
-    int out_length = 0;
-
-    if (strlen(incoming_msg) < MAX_PQT_LENGTH) {
-        out_length = debug_OSCwrite((char *)incoming_msg, buffer);
-        send_UDPmsg(buffer, out_length);
-    }
-}
-
-
-static void send_UDPmsg(char* incoming_msg, int in_length)
-{
-    source_addr->set_ip_address(master_address);
-    source_addr->set_port(OSC_CLIENT_PORT);
-    my_socket->sendto(*(source_addr), incoming_msg, in_length);
-}
 
 #endif // _MAIN_H
