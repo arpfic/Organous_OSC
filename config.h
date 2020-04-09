@@ -1,11 +1,29 @@
+/*
+    Copyright (c) 2020 Damien Leblois
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
+*/
 /* -----------------------------------------------------------------------------
- * MAIN CONFIG : changer ici les réglages principaux
+ * MAIN CONFIG : Here we can set the main properties
  */
-#define IF_VER                                  "v0.1"
 #define IF_NAME                                 "SURAIGU mod."
+#define SOFT_VER                                "v0.2"
 
-// b-side présent ?
-#define B_SIDE                                 1
+// Is the B_SIDE card present ?
+#define B_SIDE                                  1
 
 /* -----------------------------------------------------------------------------
  * LEDS
@@ -16,19 +34,18 @@
 
 /* -----------------------------------------------------------------------------
  * COIL DEFAULTS SET'S
- * - attack delay before sustain (millisec)
- * - attack value  (0.0-1.0)
- * - sustain value (0.0-1.0)
+ * - ATTACK_DELAY before sustain (millisec)
+ * - ATTACK PWM value  (0.0-1.0)
+ * - SUSTAIN PWM value (0.0-1.0)
  */
 #define COIL_ATTACK_DELAY                       20
 #define COIL_ATTACK                             (float)1.0
-#define COIL_SUSTAIN                            (float)0.8
+#define COIL_SUSTAIN                            (float)0.6
 
 /* -----------------------------------------------------------------------------
  * OSC
  */
 #define OSC_CLIENT_PORT                         12345
-#define DEBUG_PORT                              12346
 #define MAX_PQT_LENGTH                          1024
 
 /* -----------------------------------------------------------------------------
@@ -107,6 +124,6 @@
 #define DRV_B_FAULT                             PC_9
 
 /* -----------------------------------------------------------------------------
- * MISC
+ * I2C
  */
 #define DEFAULT_I2C_TAG                         0xD2
