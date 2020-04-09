@@ -25,6 +25,12 @@
 #include "FastPWM.h"
 #include "PCA9956A.h"
 
+/* CoilDriver class, a HAL for controling OUT pins with :
+ * - PWM control from the I2C LED driver (PCA9956A) to H-bridges INPUTS (DRV8844)
+ *   with the led_drv object.
+ * - I/O control from GPIOs (NUCLEO_F767ZI) to H-bridges ENABLEs (DRV8844) with
+ *   DigitalOut driver_a_table[] or driver_b_table[] (in main.h).
+ */
 class CoilDriver
 {
 protected:
@@ -47,7 +53,12 @@ private:
     void    coilSustain(int port, float percent_sustain);
 
 public:
-    // Pour remplir un registre des sorties
+    CoilDriver(PinName _i2c_sda, PinName _i2c_scl, PinName _pinoe,
+               PinName _pindrv_rst, PinName _pindrv_fault, DigitalOut *_driver_table,
+               char _i2c_addr = DEFAULT_I2C_TAG);
+
+    /* This is a stack of multiuser calls to coilOn/coilOff
+     */
     enum OUTState {
         OUT_IDLE = 0,
         OUT_ENABLED1,
@@ -58,12 +69,10 @@ public:
 
     int OUTRegister[ENABLE_PINS];
 
-    CoilDriver(PinName _i2c_sda, PinName _i2c_scl, PinName _pinoe,
-               PinName _pindrv_rst, PinName _pindrv_fault, DigitalOut *_driver_table,
-               char _i2c_addr = DEFAULT_I2C_TAG);
-
+    // Note : all DRV8844s shared RESET and FAULT PINS.
     DigitalOut drv_rst;
     PinDetect drv_fault;
+    // pointer to DRV8844s driver_X_table ENABLE PINS (see main.h)
     DigitalOut* drv_ena;
 
     void    on(int port, float percent);
@@ -72,10 +81,19 @@ public:
     void    pwmSet(int port, float percent);
     void    drvEnable(int port, bool state);
 
+    /* coilOn function is designed to drive coils through DRV8844 with :
+     * - a brief peak (COIL_ATTACK) of COIL_ATTACK_DELAY millisec, then
+     * - a sustain of COIL_SUSTAIN millisec
+     * This help saving solenoids int valves.
+     */
     void    coilOn(int port, float percent_attack, float percent_sustain, int millisec);
     void    coilOn(int port);
     void    coilOff(int port);
 
+    /* Special control of OE in PCA9956A, wich allows for hardware blinking
+     * and dimming of all LEDs -- connected to NUCLEO_F767ZI and controlled
+     * by FastPWM class.
+     */
     void    oeCycle(float percent);
     void    oePeriod(float period_sec);
 

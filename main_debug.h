@@ -27,7 +27,9 @@ void tohex(unsigned char * in, size_t insz, char * out, size_t outsz);
 int debug_OSCwritemsg(char* incoming_msg, int length, char* outgoing_msg);
 int debug_OSCwrite(char* incoming_msg, char* outgoing_msg);
 
-// outsz = 3x insz
+/* see https://stackoverflow.com/questions/6357031/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-in-c
+ * outsz = 3x insz
+ */
 void tohex(unsigned char * in, size_t insz, char * out, size_t outsz)
 {
     unsigned char * pin = in;
@@ -47,6 +49,10 @@ void tohex(unsigned char * in, size_t insz, char * out, size_t outsz)
     pout[-1] = 0;
 }
 
+/* Some helpers designed to debug over OSC
+ * debug_OSCwritemsg() format and send the buffer to debug_OSCwrite()
+ * Please note that tosc_parseMessage() checks the buffer length.
+ */
 int debug_OSCwritemsg(char* incoming_msg, int in_length, char* outgoing_msg)
 {
     tosc_message osc; // declare the TinyOSC structure

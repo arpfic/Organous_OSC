@@ -16,17 +16,17 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
     THE SOFTWARE.
 */
+
 /* -----------------------------------------------------------------------------
  * MAIN CONFIG : Here we can set the main properties
  */
 #define IF_NAME                                 "SURAIGU mod."
 #define SOFT_VER                                "v0.2"
-
-// Is the B_SIDE card present ?
+// Is the B_SIDE card present or only A_SIDE ?
 #define B_SIDE                                  1
 
 /* -----------------------------------------------------------------------------
- * LEDS
+ * NUCLEO_F767ZI LEDS
  */
 #define LED_GREEN                               LED1
 #define LED_BLUE                                LED2
@@ -43,17 +43,28 @@
 #define COIL_SUSTAIN                            (float)0.6
 
 /* -----------------------------------------------------------------------------
- * OSC
+ * OSC STUFF :
+ * OSC_CLIENT_PORT  : the port of the client (e.g. puredata)
+ * MAX_PQT_LENGTH   : MAXIMUM UDP packet length
  */
 #define OSC_CLIENT_PORT                         12345
 #define MAX_PQT_LENGTH                          1024
 
 /* -----------------------------------------------------------------------------
- * DRIVER ENABLE TABLE
+ * I2C address of PCA9956B
+ * (Please refer to https://www.nxp.com/docs/en/data-sheet/PCA9956B.pdf)
+ */
+//#define DEFAULT_I2C_TAG                         0x2A // GND-Vdd-GND
+#define DEFAULT_I2C_TAG                         0xD2 // Vdd-GND-Vdd
+
+/* -----------------------------------------------------------------------------
+ * DRV8844 DRIVERS ENABLE TABLES (see the datasheet and Hardware/)
  */
 #define ENABLE_PINS                             24
 #define MAX_OUT_ENABLED                         OUT_ENABLED4
-/* a-side (right) : OUT 1-24 
+/* ---------------------------------------------
+ * A_SIDE (right) : OUT 1-24
+ * We only have to change this with hardware changes.
  */
 #define DRV_EN1                                 PC_10
 #define DRV_EN2                                 PC_12
@@ -88,7 +99,8 @@
 #define DRV_A_RST                               PG_12
 #define DRV_A_FAULT                             PC_11
 
-/* b-side (left) : OUT 25-48 
+/* ---------------------------------------------
+ * B_SIDE (left) : OUT 25-48 
  */
 #define DRV_EN25                                PC_8
 #define DRV_EN26                                PC_6
@@ -122,8 +134,3 @@
 
 #define DRV_B_RST                               PG_5
 #define DRV_B_FAULT                             PC_9
-
-/* -----------------------------------------------------------------------------
- * I2C
- */
-#define DEFAULT_I2C_TAG                         0xD2

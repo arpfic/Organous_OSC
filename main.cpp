@@ -18,68 +18,6 @@
 */
 #include "main.h"
 
-DigitalOut  led_green(LED_GREEN);
-DigitalOut  led_blue(LED_BLUE);
-DigitalOut  led_red(LED_RED);
-InterruptIn button(USER_BUTTON);
-
-EthernetInterface *eth;
-UDPSocket *my_socket;
-SocketAddress *source_addr;
-
-EventQueue queue(256 * EVENTS_EVENT_SIZE);
-Thread thrd;
-Thread *thread_errA;
-Thread *thread_errB;
-
-tosc_message* p_osc;
-
-// Menu
-struct menu_cases {
-    const char* menu_string;
-    void (*menu_func)(void);
-};
-
-menu_cases cases [] = {
-    { "/main", menu_main },
-    { "/tools", menu_tools }
-};
-
-menu_cases tools_cases [] = {
-    { "/tools/connect",     menu_tools_connect },
-    { "/tools/debug",       menu_tools_debug },
-    { "/tools/hardreset",   menu_tools_hardreset },
-    { "/tools/softreset",   menu_tools_softreset }
-};
-
-menu_cases main_cases [] = {
-    { "/main/coil",         menu_main_coil },
-    { "/main/forceoff_all",  menu_main_forceoff_all },
-    { "/main/pwm_all",      menu_main_pwm_all },
-    { "/main/oe",           menu_main_oe },
-    { "/main/tone",         menu_main_tone }
-};
-
-// Drivers
-CoilDriver* driver_A;
-#if B_SIDE == 1
-CoilDriver* driver_B;
-#endif
-
-// Packet size limitation = MAX_PQT_LENGTH
-char    mainpacket_buffer[MAX_PQT_LENGTH];
-int     mainpacket_length = 0;
-// Prévoir plusieurs master ? Ou bien broadcaster comme un bourrin ?
-char*   master_address;
-// Debug
-char    debug_on = 0;
-
-// Little sampler ticker/timer (beta)
-volatile int k = 0;
-float sinusoid_data[128];
-Ticker sample_ticker;
-float tone = 500.0;
-
 static void handle_socket()
 {
     queue.call(receive_message);
@@ -93,16 +31,16 @@ static void receive_message()
     // read all messages
     while (something_in_socket) {
         mainpacket_length = my_socket->recvfrom(source_addr,
-                                                mainpacket_buffer, sizeof(mainpacket_buffer) - 1);
+                mainpacket_buffer, sizeof(mainpacket_buffer) - 1);
         if (mainpacket_length > 0) {
             handler_Packetevent();
         } else if (mainpacket_length!=NSAPI_ERROR_WOULD_BLOCK) {
             // Error while receiving
             led_red = !led_red;
-            something_in_socket=false;
+            something_in_socket = false;
         } else {
-            // there was nothing to read.
-            something_in_socket=false;
+            // There was nothing to read.
+            something_in_socket = false;
         }
     }
 }
@@ -128,7 +66,7 @@ void menu_tools_debug()
 
 void menu_tools_hardreset()
 {
-    // On montre l'activité
+    // Blink for fun
     led_green = led_blue = led_red = 1;
     debug_OSC("REBOOTING...");
     //wait(1);
@@ -150,7 +88,7 @@ void menu_tools_hardreset()
 
 void menu_tools_softreset()
 {
-    // On montre l'activité
+    // Blink for fun
     led_green = led_blue = led_red = 1;
     debug_OSC("RESET STATES...");
     // Ticker destruct
@@ -173,7 +111,7 @@ void menu_tools_softreset()
 
 void menu_main_coil()
 {
-    // On montre l'activité
+    // Blink for fun
     led_blue = !led_blue;
     if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i') {
         int tone = tosc_getNextInt32(p_osc);
@@ -208,7 +146,7 @@ void menu_main_coil()
 
 void menu_main_forceoff_all()
 {
-    // On montre l'activité
+    // Blink for fun
     led_blue = !led_blue;
     driver_A->forceoff(ALLPORTS);
     driver_A->oeCycle(0.0f);
@@ -223,7 +161,7 @@ void menu_main_forceoff_all()
 
 void menu_main_pwm_all()
 {
-    // On montre l'activité
+    // Blink for fun
     led_blue = !led_blue;
     if (p_osc->format[0] == 'f') {
         float pwm = tosc_getNextFloat(p_osc);
@@ -247,7 +185,7 @@ void menu_main_pwm_all()
 
 void menu_main_oe()
 {
-    // On montre l'activité
+    // Blink for fun
     led_blue = !led_blue;
     if (p_osc->format[0] == 'f') {
         float cycle = tosc_getNextFloat(p_osc);
@@ -271,7 +209,7 @@ void menu_main_oe()
 
 void menu_main_tone()
 {
-    // On montre l'activité
+    // Blink for fun
     led_blue = !led_blue;
     if (p_osc->format[0] == 'f') {
         float tone = tosc_getNextFloat(p_osc);

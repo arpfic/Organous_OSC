@@ -42,13 +42,15 @@ CoilDriver::~CoilDriver()
 }
 
 /* init()
- * - drv_rst est à 0
- * - Fréquence I2C
- * - Limitation du courant dans les LED
- * - On allume toutes les LED (pour rappel la sortie du driver est inversé)
- * - DigitalOut sur chaque drv_ena est initialité de lui-même à 0
- * - OE est activé
- * - drv_rst est à 1 pour le moment
+ * - drv_rst sets to 0 to enable drivers (see the DRV8844 datasheet)
+ * - I2C freq to Fastmode (1Mhz)
+ * - LED current sets to 0.5 to activate DRV8844
+ * - Remember that OUTPUTS are inversed because of the PCA9956A mechanism, so
+ *   we have to set all LEDS to ON.
+ * - OUTRegister stack is initiazed to OUT_IDLE
+ * - OE (PCA9956A) have to be 0 to activate OUTPUTS.
+ * - TODO: maybe set drv_rst = 1 ?
+ * - coilOn queue and callback is started
  */
 void CoilDriver::init( void )
 {
@@ -63,9 +65,15 @@ void CoilDriver::init( void )
     oe.write(0.0f);
     oe.period(1.0f);
     drv_rst = 1;
+    // Attack-sustain Thread callback start
     coilThrd.start(callback(&coilQueue, &EventQueue::dispatch_forever));
 }
 
+/* Simple on() function, whose purpose is to set :
+ * - PWM with PCA9956A, and
+ * - ENABLE with NUCLEO_F767ZI's GPIO to DRV8844
+ * Note : a multi-user stack is implemented.
+ */
 void CoilDriver::on(int port, float percent)
 {
     if (percent >= 0.0f && percent <= 1.0f) {
@@ -91,6 +99,8 @@ void CoilDriver::on(int port, float percent)
     }
 }
 
+/* Same idea with off()
+ */
 void CoilDriver::off(int port)
 {
     if (port == ALLPORTS) {
@@ -116,6 +126,8 @@ void CoilDriver::off(int port)
     }
 }
 
+/* Same as off(), but the stack is flushed
+ */
 void CoilDriver::forceoff(int port)
 {
     if (port == ALLPORTS) {
@@ -131,12 +143,16 @@ void CoilDriver::forceoff(int port)
     }
 }
 
+/* Simple glue function to set PWM in PCA9956A.
+ */
 void CoilDriver::pwmSet(int port, float percent)
 {
     if (percent >= 0.0f && percent <= 1.0f)
         led_drv.pwm( port, (float)1.0 - percent );
 }
 
+/* Simple function to enable/disable ENABLE_PINS (DRV8844)
+ */
 void CoilDriver::drvEnable(int port, bool state)
 {
     if (port == ALLPORTS) {
@@ -148,6 +164,7 @@ void CoilDriver::drvEnable(int port, bool state)
     }
 }
 
+// Function called by coilQueue in coilOn() : Coil sustain to COIL_SUSTAIN PWM.
 void CoilDriver::coilSustain(int port, float percent_sustain)
 {
     if (drv_ena[port].read() != 0)
@@ -155,29 +172,36 @@ void CoilDriver::coilSustain(int port, float percent_sustain)
     return;
 }
 
+/* Set the coil to percent_attack PWM ratio, and...
+ * execute coilSustain() after a delay with a queue to PWM ratio percent_sustain.
+ */
 void CoilDriver::coilOn(int port, float percent_attack, float percent_sustain, int millisec)
 {
     on(port, percent_attack);
     coilQueue.call_in(millisec, this, &CoilDriver::coilSustain, port, percent_sustain);
 }
 
+// Same but with fixed COIL_ATTACK_DELAY millisec.
 void CoilDriver::coilOn(int port)
 {
     on(port, COIL_ATTACK);
     coilQueue.call_in(COIL_ATTACK_DELAY, this, &CoilDriver::coilSustain, port, COIL_SUSTAIN);
 }
 
+// gluecode to off()
 void CoilDriver::coilOff(int port)
 {
     off(port);
 }
 
+// Check and write PWM ratio (percent) to FastPWM oe
 void CoilDriver::oeCycle(float percent)
 {
     if (percent >= 0.0f && percent <= 1.0f)
         oe.write(percent);
 }
 
+// Same but with the period
 void CoilDriver::oePeriod(float period_sec)
 {
     if (period_sec > 0.0f)
