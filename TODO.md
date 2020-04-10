@@ -3,14 +3,15 @@
 ###### Software
 
 * -not so ok- Distinguer l'usage d'un seul ou des deux drivers à la fois
-* Commenter le code
+* -ok- Commenter le code
 * Tester l'inversion 0->1 du pca99x6B au repos
 * Retourner un code d'erreur si aucun pca995xB n'est trouvé
-* Gérer les erreurs au niveau du pca995xB lui-même
-* Écrire un vrai README
-* Discriminer les messages de debug
-* Licencier le code correctement (À présent il y a du Apache/MIT)
 * Écrire une doc pour la carte elle-même
+* Gérer les erreurs au niveau du pca995xB lui-même
+* -ok- Écrire un vrai README
+* Discriminer les messages de debug
+* Chercher à créer un fichier de config directement dans le système de fichier du NUCLEO ?
+* -ok- Licencier le code correctement (À présent il y a du Apache/MIT)
 * Créer un wrapper midi (et une interface qui émanciperait de puredata)
 
 ###### Hardware
