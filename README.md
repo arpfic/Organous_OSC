@@ -4,6 +4,6 @@ This folder contains hardware designs and software for the Orguanous, a prototyp
 
 ![Organous OSC v0.1](https://raw.githubusercontent.com/arpfic/Organous_OSC/master/Hardware/bw_photo_v0.1.jpeg)
 
-Principal ode maintainer : Damien Leblois <damienleb@protonmail.com>
+Principal code maintainer : Damien Leblois <damienleb@protonmail.com>
 
 https://www.violonaroue.fr/Orguanous
