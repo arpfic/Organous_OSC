@@ -2,15 +2,15 @@
 
 ###### Software
 
-* -not so ok- Distinguer l'usage d'un seul ou des deux drivers à la fois
-* Commenter le code
+* -ok- Commenter le code
+* Tester le reliability d'UDP, et tenter d'implémenter un ack avec puredata
 * Tester l'inversion 0->1 du pca99x6B au repos
 * Retourner un code d'erreur si aucun pca995xB n'est trouvé
+* -not so ok- Distinguer l'usage d'un seul ou des deux drivers à la fois
 * Gérer les erreurs au niveau du pca995xB lui-même
-* Écrire un vrai README
+* Écrire un vrai README et/ou écrire une doc pour la carte elle-même
 * Discriminer les messages de debug
-* Licencier le code correctement (À présent il y a du Apache/MIT)
-* Écrire une doc pour la carte elle-même
+* -ok- Licencier le code correctement (À présent il y a du Apache/MIT)
 * Créer un wrapper midi (et une interface qui émanciperait de puredata)
 
 ###### Hardware

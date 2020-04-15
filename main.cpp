@@ -140,13 +140,13 @@ void eth_status_callback(nsapi_event_t status, intptr_t param)
  */
 void driver_A_error_handler()
 {
-    debug_OSC("OVERCURRENT ERROR on card A. Please reset");
+    debug_OSC("ERROR (temp/voltage/current) on card A. Please reset");
     led_red = 1;
 }
 
 void driver_B_error_handler()
 {
-    debug_OSC("OVERCURRENT ERROR on card B. Please reset");
+    debug_OSC("ERROR (temp/voltage/current) on card B. Please reset");
     led_red = 1;
 }
 
@@ -186,6 +186,7 @@ int main()
     eth->attach(&eth_status_callback);
     // Set-up UDPSocket my_socket because OSC IS in UDP. TODO : try and benchmark TCP ?
     my_socket = new UDPSocket(eth);
+    //my_socket = new TCPSocket(eth);
     my_socket->set_blocking(false);
     my_socket->open(eth);
     // Set-up SocketAddress source_addr
