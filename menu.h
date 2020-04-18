@@ -88,12 +88,12 @@ void menu_tools_softreset()
     delete driver_A;
     // Create new objects
     driver_A = new CoilDriver(PCA_A_SDA, PCA_A_SCL, PCA_A_OE, DRV_A_RST,
-                              DRV_A_FAULT, driver_a_table, 0xD2);
+                              DRV_A_FAULT, driver_a_table, A_SIDE_I2C_TAG);
 #if B_SIDE == 1
     driver_B->forceoff(ALLPORTS);
     delete driver_B;
     driver_B = new CoilDriver(PCA_B_SDA, PCA_B_SCL, PCA_B_OE, DRV_B_RST,
-                              DRV_B_FAULT, driver_b_table, 0x2A);
+                              DRV_B_FAULT, driver_b_table, B_SIDE_I2C_TAG);
 #endif
     led_green = led_blue = led_red = 0;
 }

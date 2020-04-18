@@ -160,7 +160,7 @@ int main()
 
     // Init homemade CoilDriver class
     driver_A = new CoilDriver(PCA_A_SDA, PCA_A_SCL, PCA_A_OE, DRV_A_RST,
-                              DRV_A_FAULT, driver_a_table, 0xD2);
+                              DRV_A_FAULT, driver_a_table, A_SIDE_I2C_TAG);
     // Set-up driver_A error feedbacks with PinDetect
     driver_A->drv_fault.attach_asserted_held(queue.event(driver_A_error_handler));
     driver_A->drv_fault.setSamplesTillHeld(20);
@@ -168,7 +168,7 @@ int main()
     driver_A->drv_fault.setSampleFrequency();
 #if B_SIDE == 1
     driver_B = new CoilDriver(PCA_B_SDA, PCA_B_SCL, PCA_B_OE, DRV_B_RST,
-                              DRV_B_FAULT, driver_b_table, 0x2A);
+                              DRV_B_FAULT, driver_b_table, B_SIDE_I2C_TAG);
     driver_B->drv_fault.attach_asserted_held(queue.event(driver_B_error_handler));
     driver_B->drv_fault.setSamplesTillHeld(20);
     driver_B->drv_fault.setAssertValue(0);
