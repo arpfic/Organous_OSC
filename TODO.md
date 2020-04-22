@@ -17,6 +17,7 @@
 
 ###### Hardware
 
+* Envisager sérieusement une carte d'extension qui relèverait le courant.
 * Prévoir des entretoises et un support de fixation contre les sommiers
 * Envisager une boîte de protection ?
 
