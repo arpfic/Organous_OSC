@@ -2,7 +2,7 @@
 #X obj 342 280 list prepend send;
 #X obj 342 302 list trim;
 #X obj 342 348 netsend -u -b;
-#X msg 466 346 disconnect;
+#X msg 466 302 disconnect;
 #X obj 21 17 notein;
 #X floatatom 21 39 5 0 0 0 - - -;
 #X floatatom 67 38 5 0 0 0 - - -;
@@ -23,14 +23,14 @@
 #X obj 342 236 receive oscinput;
 #X obj 21 148 send oscinput;
 #X obj 21 548 send oscinput;
-#X obj 342 437 list prepend send;
-#X obj 342 459 list trim;
-#X obj 342 503 netsend -u -b;
+#X obj 342 464 list prepend send;
+#X obj 342 486 list trim;
+#X obj 342 530 netsend -u -b;
 #X msg 468 390 disconnect;
 #X msg 468 368 connect 255.255.255.255 12345;
 #X obj 342 258 oscformat -s /main;
 #X obj 550 556 send oscdebug;
-#X obj 342 378 receive oscdebug;
+#X obj 342 405 receive oscdebug;
 #X obj 561 187 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
 #X obj 337 146 print main;
@@ -59,7 +59,7 @@
 #X msg 340 620 set /tools/softreset;
 #X msg 508 620 set /tools/connect;
 #X msg 550 534 set /tools/debug;
-#X obj 342 397 oscformat -s /tools;
+#X obj 342 424 oscformat -s /tools;
 #X obj 201 642 send oscdebug;
 #X obj 340 642 send oscdebug;
 #X obj 508 642 send oscdebug;
@@ -98,12 +98,16 @@
 #X obj 415 146 print ack;
 #X obj 550 447 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
-#X msg 466 324 connect 172.24.1.143 12345;
+#X msg 466 280 connect 172.24.1.143 12345;
 #X obj 337 58 netreceive -u -b 12345;
 #X msg 546 45 listen 12345;
 #X msg 546 67 listen 0;
+#X floatatom 342 555 5 0 0 0 - - -;
+#X floatatom 342 374 5 0 0 0 - - -;
+#X obj 468 344 loadbang;
 #X connect 0 0 1 0;
 #X connect 1 0 2 0;
+#X connect 2 0 93 0;
 #X connect 3 0 2 0;
 #X connect 4 0 5 0;
 #X connect 4 1 6 0;
@@ -130,13 +134,14 @@
 #X connect 19 0 27 0;
 #X connect 22 0 23 0;
 #X connect 23 0 24 0;
+#X connect 24 0 92 0;
 #X connect 25 0 24 0;
 #X connect 26 0 24 0;
 #X connect 27 0 0 0;
 #X connect 29 0 52 0;
 #X connect 30 0 88 0;
-#X connect 30 0 26 0;
 #X connect 30 0 90 0;
+#X connect 30 0 25 0;
 #X connect 32 0 66 0;
 #X connect 35 0 37 0;
 #X connect 35 1 39 0;
@@ -200,3 +205,5 @@
 #X connect 89 0 8 0;
 #X connect 90 0 89 0;
 #X connect 91 0 89 0;
+#X connect 94 0 26 0;
+#X connect 94 0 90 0;
