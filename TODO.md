@@ -2,6 +2,7 @@
 
 ###### Software
 
+* Régler le problème des deux réseaux et de l'initialisation des IP sur puredata
 * -not so ok- Distinguer l'usage d'un seul ou des deux drivers à la fois
 * Tester le reliability d'UDP, et tenter d'implémenter un ack avec puredata
 * -ok- Commenter le code
