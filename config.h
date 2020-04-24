@@ -56,7 +56,7 @@
  */
 #define A_SIDE_I2C_TAG                         0x2A // Vdd-GND-Vdd
 #define B_SIDE_I2C_TAG                         0xD2 // GND-Vdd-GND
-#define DEFAULT_I2C_TAG                        0xD2
+#define DEFAULT_I2C_TAG                        0x2A
 
 /* -----------------------------------------------------------------------------
  * DRV8844 DRIVERS ENABLE TABLES (see the datasheet and Hardware/)
