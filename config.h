@@ -48,7 +48,7 @@
  * MAX_PQT_LENGTH   : MAXIMUM UDP packet length
  */
 #define OSC_CLIENT_PORT                         12345
-#define MAX_PQT_LENGTH                          1024
+#define MAX_PQT_LENGTH                          512
 
 /* -----------------------------------------------------------------------------
  * I2C address of PCA9956B
