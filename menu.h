@@ -17,6 +17,20 @@
     THE SOFTWARE.
 */
 
+/* OSC menu parser. See main.cpp for details.
+ */
+void menu_main();
+void menu_tools();
+void menu_tools_connect();
+void menu_tools_debug();
+void menu_tools_hardreset();
+void menu_tools_softreset();
+void menu_main_coil();
+void menu_main_forceoff_all();
+void menu_main_pwm_all();
+void menu_main_oe();
+void menu_main_tone();
+
 /* Menu structure with function pointers. Still OK with a modest menu but 
  * there is for sure better ideas for a better algorithmic complexity.
  */
@@ -43,6 +57,7 @@ menu_cases main_cases [] = {
     { "/main/pwm_all",      menu_main_pwm_all },
     { "/main/oe",           menu_main_oe },
     { "/main/tone",         menu_main_tone }
+//    { "/main/count",        menu_main_count }
 };
 
 /* -----------------------------------------------------------------------------

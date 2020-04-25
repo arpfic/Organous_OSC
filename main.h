@@ -55,19 +55,6 @@ void driver_B_error_handler();
 // UP OSC messages to client(s)
 static void send_UDPmsg(char*, int);
 
-/* OSC menu parser. See main.cpp for details.
- */
-void menu_main();
-void menu_tools();
-void menu_tools_connect();
-void menu_tools_debug();
-void menu_tools_hardreset();
-void menu_tools_softreset();
-void menu_main_coil();
-void menu_main_forceoff_all();
-void menu_main_pwm_all();
-void menu_main_oe();
-void menu_main_tone();
 int main();
 
 // Callback to /main/tone OSC BROKEN function.
