@@ -197,7 +197,7 @@ int main()
     // Callback ANY packet to handle_socket() -- here is the main magic function.
     my_socket->sigio(callback(handle_socket));
     // and... Dispatch forever the queue !
-    thrd.start(callback(&queue, &EventQueue::dispatch_forever));
+    //thrd.start(callback(&queue, &EventQueue::dispatch_forever));
 
     /* At this step we are "On the Air", so we can dend up a welcome message to
      * broadcast. We can communicate in both sides with BROADCAST address, but it's
@@ -213,6 +213,7 @@ int main()
     }
 
     while (true) {
+    	queue.dispatch_forever();
         // Not even sleep !
     }
 }

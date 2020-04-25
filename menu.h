@@ -30,6 +30,10 @@ void menu_main_forceoff_all();
 void menu_main_pwm_all();
 void menu_main_oe();
 void menu_main_tone();
+//For network debugging purpose
+void menu_main_count();
+long int debug_count = 0;
+int debug_smallcount = 0;
 
 /* Menu structure with function pointers. Still OK with a modest menu but 
  * there is for sure better ideas for a better algorithmic complexity.
@@ -56,8 +60,8 @@ menu_cases main_cases [] = {
     { "/main/forceoff_all",  menu_main_forceoff_all },
     { "/main/pwm_all",      menu_main_pwm_all },
     { "/main/oe",           menu_main_oe },
-    { "/main/tone",         menu_main_tone }
-//    { "/main/count",        menu_main_count }
+    { "/main/tone",         menu_main_tone },
+    { "/main/count",        menu_main_count }
 };
 
 /* -----------------------------------------------------------------------------
@@ -275,6 +279,26 @@ void menu_main_tone()
             sample_ticker.attach_us(&sampler_timer, (tone)*128);
         }
     }
+}
+
+/* OSC msg  : /main/count i COUNT
+ * Purpose  : Just ping pong from client for network reliability test
+ */
+void menu_main_count()
+{
+    // Blink for fun
+    led_blue = !led_blue;
+    if (p_osc->format[0] == 'i') {
+        int i = tosc_getNextInt32(p_osc);
+		debug_smallcount = debug_smallcount + i;
+        debug_count = debug_count + i;
+    }
+	if (debug_smallcount > 99) {
+		char buffer[MAX_PQT_LENGTH];
+		sprintf(buffer, "%ld", debug_count);
+		debug_OSC(buffer);
+		debug_smallcount = 0;
+	}
 }
 
 // Menu parsers to function pointers.
