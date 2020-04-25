@@ -17,6 +17,34 @@
     THE SOFTWARE.
 */
 
+/* Menu structure with function pointers. Still OK with a modest menu but 
+ * there is for sure better ideas for a better algorithmic complexity.
+ */
+struct menu_cases {
+    const char* menu_string;
+    void (*menu_func)(void);
+};
+
+menu_cases cases [] = {
+    { "/main", menu_main },
+    { "/tools", menu_tools }
+};
+
+menu_cases tools_cases [] = {
+    { "/tools/connect",     menu_tools_connect },
+    { "/tools/debug",       menu_tools_debug },
+    { "/tools/hardreset",   menu_tools_hardreset },
+    { "/tools/softreset",   menu_tools_softreset }
+};
+
+menu_cases main_cases [] = {
+    { "/main/coil",         menu_main_coil },
+    { "/main/forceoff_all",  menu_main_forceoff_all },
+    { "/main/pwm_all",      menu_main_pwm_all },
+    { "/main/oe",           menu_main_oe },
+    { "/main/tone",         menu_main_tone }
+};
+
 /* -----------------------------------------------------------------------------
  * MENU OSC Parser : HERE WE ACT !
  */

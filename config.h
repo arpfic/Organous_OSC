@@ -54,7 +54,8 @@
  * I2C address of PCA9956B
  * (Please refer to https://www.nxp.com/docs/en/data-sheet/PCA9956B.pdf)
  */
-#define A_SIDE_I2C_TAG                         0xD2 // Vdd-GND-Vdd
+#define A_SIDE_I2C_TAG                         0xD2 // Leo
+#define A_SIDE_I2C_TAG                         0x2A // GND-Vdd-GND
 #define B_SIDE_I2C_TAG                         0x2A // GND-Vdd-GND
 #define DEFAULT_I2C_TAG                        0xD2 // GND-Vdd-GND
 
