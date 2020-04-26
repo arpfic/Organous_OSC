@@ -213,6 +213,7 @@ int main()
     }
 
     while (true) {
+        // Dispatch forever the queue, directly and not in a thread (bugs appends)
     	queue.dispatch_forever();
         // Not even sleep !
     }

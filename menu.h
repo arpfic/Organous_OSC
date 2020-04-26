@@ -261,7 +261,7 @@ void menu_main_oe()
 
 /* OSC msg  : /main/tone f FREQ
  * Purpose  : Play a "note" in class-D style OUT through all DRV8844 and with OE setting
- * Note     : COMPLETELY BROKEN at this state and to be debbuged (with the new mbed-os)
+ * Note     : Very experimental and ugly. But promising.
  */
 void menu_main_tone()
 {

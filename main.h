@@ -94,7 +94,7 @@ SocketAddress *source_addr;
  * packets
  */
 EventQueue queue(256 * EVENTS_EVENT_SIZE);
-Thread thrd;
+//Thread thrd;
 
 // SameThread but for (hopefully not so often) DRV8844 errors
 Thread *thread_errA;
