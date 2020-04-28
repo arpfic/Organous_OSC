@@ -79,7 +79,7 @@ public:
     void    off(int port);
     void    forceoff(int port);
     void    pwmSet(int port, float percent);
-    void    drvEnable(int port, bool state);
+    void    drvEnable(int port, int state);
 
     /* coilOn function is designed to drive coils through DRV8844 with :
      * - a brief peak (COIL_ATTACK) of COIL_ATTACK_DELAY millisec, then

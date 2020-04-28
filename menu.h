@@ -20,18 +20,25 @@
 /* OSC menu parser. See main.cpp for details.
  */
 void menu_main();
+void menu_lowlevel();
 void menu_tools();
+
+void menu_main_coil();
+void menu_main_oe();
+void menu_main_tone();
+void menu_lowlevel_output();
+void menu_lowlevel_output_all();
+void menu_lowlevel_output_state();
+void menu_lowlevel_pwm();
+void menu_lowlevel_pwm_all();
+void menu_lowlevel_pwm_state();
 void menu_tools_connect();
 void menu_tools_debug();
 void menu_tools_hardreset();
 void menu_tools_softreset();
-void menu_main_coil();
-void menu_main_forceoff_all();
-void menu_main_pwm_all();
-void menu_main_oe();
-void menu_main_tone();
-//For network debugging purpose
-void menu_main_count();
+void menu_tools_forceoff_all();
+void menu_tools_count();
+
 long int debug_count = 0;
 int debug_smallcount = 0;
 
@@ -44,29 +51,270 @@ struct menu_cases {
 };
 
 menu_cases cases [] = {
-    { "/main", menu_main },
-    { "/tools", menu_tools }
-};
-
-menu_cases tools_cases [] = {
-    { "/tools/connect",     menu_tools_connect },
-    { "/tools/debug",       menu_tools_debug },
-    { "/tools/hardreset",   menu_tools_hardreset },
-    { "/tools/softreset",   menu_tools_softreset }
+    { "/main",     menu_main       },
+    { "/lowlevel", menu_lowlevel   },
+    { "/tools",    menu_tools      }
 };
 
 menu_cases main_cases [] = {
-    { "/main/coil",         menu_main_coil },
-    { "/main/forceoff_all",  menu_main_forceoff_all },
-    { "/main/pwm_all",      menu_main_pwm_all },
-    { "/main/oe",           menu_main_oe },
-    { "/main/tone",         menu_main_tone },
-    { "/main/count",        menu_main_count }
+    { "/main/coil",         menu_main_coil         },
+    { "/main/oe",           menu_main_oe           },
+    { "/main/tone",         menu_main_tone         }
+};
+
+menu_cases lowlevel_cases [] = {
+    { "/lowlevel/output",       menu_lowlevel_output       },
+    { "/lowlevel/output_all",   menu_lowlevel_output_all   },
+    { "/lowlevel/output_state", menu_lowlevel_output_state },
+    { "/lowlevel/pwm",          menu_lowlevel_pwm          },
+    { "/lowlevel/pwm_all",      menu_lowlevel_pwm_all      },
+    { "/lowlevel/pwm_state",    menu_lowlevel_pwm_state    }
+};
+
+menu_cases tools_cases [] = {
+    { "/tools/connect",      menu_tools_connect      },
+    { "/tools/debug",        menu_tools_debug        },
+    { "/tools/hardreset",    menu_tools_hardreset    },
+    { "/tools/softreset",    menu_tools_softreset    },
+    { "/tools/forceoff_all", menu_tools_forceoff_all },
+    { "/tools/count",        menu_tools_count        }
 };
 
 /* -----------------------------------------------------------------------------
  * MENU OSC Parser : HERE WE ACT !
  */
+
+/* OSC msg  : /main/coil ii PORT INTENSITY
+ * Purpose  : drive coilOn/coilOff functions
+ * Note     : For now, INTENSITY is almost useless : we just launch coilOff if == 0
+ */
+void menu_main_coil()
+{
+    // Blink for fun
+    led_blue = !led_blue;
+    if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i') {
+        int port = tosc_getNextInt32(p_osc);
+        int intensity = tosc_getNextInt32(p_osc);
+        if (port >= 0 && port < 24 ) {
+            if (intensity == 0) {
+                if (debug_on) {
+                    char buf[64];
+                    sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_A->OUTRegister[port]);
+                    debug_OSC(buf);
+                }
+                driver_A->coilOff(port);
+            } else {
+                driver_A->coilOn(port);
+            }
+#if B_SIDE == 1
+        } else if (port >= 24 && port < 48 ) {
+            if (intensity == 0) {
+                if (debug_on) {
+                    char buf[64];
+                    sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_B->OUTRegister[port - 24]);
+                    debug_OSC(buf);
+                }
+                driver_B->coilOff(port - 24);
+            } else {
+                driver_B->coilOn(port - 24);
+            }
+#endif
+        }
+    }
+}
+
+/* OSC msg  : /main/oe ff CYCLE_RATIO PERIOD_SEC
+ * Purpose  : set OE FastPWM config and control blinking of all LEDS at the same time
+ * Note     : can be used in conjunction with other functions -- currently we DON'T
+ *            touch ENABLE table
+ */
+void menu_main_oe()
+{
+    // Blink for fun
+    led_blue = !led_blue;
+    if (p_osc->format[0] == 'f') {
+        float cycle = tosc_getNextFloat(p_osc);
+        if (cycle > 0 && cycle <=1 ) {
+            driver_A->oeCycle(cycle);
+#if B_SIDE == 1
+            driver_B->oeCycle(cycle);
+#endif
+        }
+    }
+    if (p_osc->format[1] == 'f') {
+        float period = tosc_getNextFloat(p_osc);
+        if (period > 0) {
+            driver_A->oePeriod(period);
+#if B_SIDE == 1
+            driver_B->oePeriod(period);
+#endif
+        }
+    }
+}
+
+/* OSC msg  : /main/tone f FREQ
+ * Purpose  : Play a "note" in class-D style through all DRV8844 OUT and with OE setting
+ * Note     : Very experimental and ugly. But promising.
+ */
+void menu_main_tone()
+{
+    // Blink for fun
+    led_blue = !led_blue;
+    if (p_osc->format[0] == 'f') {
+        float tone = tosc_getNextFloat(p_osc);
+        if (tone >0) {
+            // Little sampler Period init
+            driver_A->oePeriod(1.0/200000.0);
+#if B_SIDE == 1
+            driver_B->oePeriod(1.0/200000.0);
+#endif
+            sample_ticker.detach();
+            sample_ticker.attach_us(&sampler_timer, (tone)*128);
+        }
+    }
+}
+
+/* OSC msg  : /lowlevel/output ii PORT 0/1
+ * Purpose  : set/unset OUTPUT with ENABLE pin on DRV8844 (see datasheet)
+ */
+void menu_lowlevel_output()
+{
+    // Blink for fun
+    led_blue = !led_blue;
+    if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i') {
+        int port  = tosc_getNextInt32(p_osc);
+        int state = tosc_getNextInt32(p_osc);
+        if (state >= 0 && state <= 1 && port >= 0 && port < 24 ) {
+            if (debug_on) {
+                char buf[64];
+                sprintf(buf, "OUT %i %i", port, state);
+                debug_OSC(buf);
+            }
+            driver_A->drvEnable(port, state);
+#if B_SIDE == 1
+        } else if (state >= 0 && state <= 1 && port >= 24 && port < 48 ) {
+            if (debug_on) {
+                char buf[64];
+                sprintf(buf, "OUT %i %i", port, state);
+                debug_OSC(buf);
+            }
+            driver_B->drvEnable(port - 24, state);
+#endif
+        }
+    }
+}
+
+/* OSC msg  : /lowlevel/output_all i 0/1
+ * Purpose  : set/unset ALL OUTPUTS with ENABLE pin on DRV8844 (see datasheet)
+ */
+void menu_lowlevel_output_all()
+{
+    // Blink for fun
+    led_blue = !led_blue;
+    if (p_osc->format[0] == 'i') {
+        int state = tosc_getNextInt32(p_osc);
+        if (state >= 0 && state <= 1) {
+            if (debug_on) {
+                char buf[64];
+                sprintf(buf, "ALL OUT %i", state);
+                debug_OSC(buf);
+            }
+            driver_A->drvEnable(ALLPORTS, state);
+#if B_SIDE == 1
+        } else if (state >= 0 && state <= 1) {
+            if (debug_on) {
+                char buf[64];
+                sprintf(buf, "ALL OUT %i", state);
+                debug_OSC(buf);
+            }
+            driver_B->drvEnable(ALLPORTS, state);
+#endif
+        }
+    }
+}
+
+/* OSC msg  : /lowlevel/output_state i PORT
+ * Purpose  : just return OUTPUT state
+ */
+void menu_lowlevel_output_state()
+{
+    // Blink for fun
+    led_blue = !led_blue;
+    if (p_osc->format[0] == 'i') {
+        int port  = tosc_getNextInt32(p_osc);
+        if (port >= 0 && port < 24 ) {
+            char buf[64];
+            sprintf(buf, "OUT %i %i", port, driver_A->drv_ena[port].read());
+            debug_OSC(buf);
+#if B_SIDE == 1
+        } else if (port >= 24 && port < 48 ) {
+            char buf[64];
+            sprintf(buf, "OUT %i %i", port, driver_B->drv_ena[port - 24].read());
+            debug_OSC(buf);
+#endif
+        }
+    }
+}
+
+/* OSC msg  : /lowlevel/pwm if PORT RATIO
+ * Purpose  : control blinking of LEDS with RATIO[0:1]
+ */
+void menu_lowlevel_pwm()
+{
+    // Blink for fun
+    led_blue = !led_blue;
+    if (p_osc->format[0] == 'i' && p_osc->format[1] == 'f') {
+        int port  = tosc_getNextInt32(p_osc);
+        float pwm = tosc_getNextFloat(p_osc);
+        if (pwm > 0 && pwm <=1 && port >= 0 && port < 24 ) {
+            if (debug_on) {
+                char buf[64];
+                sprintf(buf, "OUT %i PWM %2f", port, pwm);
+                debug_OSC(buf);
+            }
+            driver_A->pwmSet(port, pwm);
+#if B_SIDE == 1
+        } else if (pwm > 0 && pwm <=1 && port >= 24 && port < 48 ) {
+            if (debug_on) {
+                char buf[64];
+                sprintf(buf, "OUT %i PWM %2f", port, pwm);
+                debug_OSC(buf);
+            }
+            driver_B->pwmSet(port - 24, pwm);
+#endif
+        }
+    }
+}
+
+/* OSC msg  : /lowlevel/pwm_all f RATIO
+ * Purpose  : control blinking of all LEDS at the same time with RATIO[0:1]
+ * Note     : Can be used in conjunction with OE
+ */
+void menu_lowlevel_pwm_all()
+{
+    // Blink for fun
+    led_blue = !led_blue;
+    if (p_osc->format[0] == 'f') {
+        float pwm = tosc_getNextFloat(p_osc);
+        if (pwm > 0 && pwm <=1) {
+            if (debug_on) {
+                char buf[64];
+                sprintf(buf, "ALL PWM %2f", pwm);
+                debug_OSC(buf);
+            }
+            driver_A->pwmSet(ALLPORTS, pwm);
+#if B_SIDE == 1
+            driver_B->pwmSet(ALLPORTS, pwm);
+#endif
+        }
+    }
+}
+
+/* OSC msg  : /lowlevel/pwm_state i PORT
+ * Purpose  : read the PWM state of PORT
+ * Note     : Nothing for now.
+ */
+void menu_lowlevel_pwm_state(){}
 
 /* OSC msg  : /tools/connect NONE (Bang)
  * Purpose  : connect NUCLEO_F767ZI to client (set IP address)
@@ -145,49 +393,10 @@ void menu_tools_softreset()
     led_green = led_blue = led_red = 0;
 }
 
-/* OSC msg  : /main/coil ii PORT INTENSITY
- * Purpose  : drive coilOn/coilOff functions
- * Note     : coilOff if INTENSITY == 0
- */
-void menu_main_coil()
-{
-    // Blink for fun
-    led_blue = !led_blue;
-    if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i') {
-        int tone = tosc_getNextInt32(p_osc);
-        int release = tosc_getNextInt32(p_osc);
-        if (tone >= 0 && tone < 24 ) {
-            if (release == 0) {
-                if (debug_on) {
-                    char buf[64];
-                    sprintf(buf, "COIL %i : %i use(s)", tone, (int)driver_A->OUTRegister[tone]);
-                    debug_OSC(buf);
-                }
-                driver_A->coilOff(tone);
-            } else {
-                driver_A->coilOn(tone);
-            }
-#if B_SIDE == 1
-        } else if (tone >= 24 && tone < 48 ) {
-            if (release == 0) {
-                if (debug_on) {
-                    char buf[64];
-                    sprintf(buf, "COIL %i : %i use(s)", tone, (int)driver_B->OUTRegister[tone - 24]);
-                    debug_OSC(buf);
-                }
-                driver_B->coilOff(tone - 24);
-            } else {
-                driver_B->coilOn(tone - 24);
-            }
-#endif
-        }
-    }
-}
-
-/* OSC msg  : /main/forceoff_all NONE (Bang)
+/* OSC msg  : /tools/forceoff_all NONE (Bang)
  * Purpose  : re-init OE and call forceoff ALLPORTS
  */
-void menu_main_forceoff_all()
+void menu_tools_forceoff_all()
 {
     // Blink for fun
     led_blue = !led_blue;
@@ -202,89 +411,10 @@ void menu_main_forceoff_all()
 #endif
 }
 
-/* OSC msg  : /main/pwm_all f RATIO
- * Purpose  : control blinking of all LEDS at the same time
- * Note     : Can be used in conjunction with OE
- */
-void menu_main_pwm_all()
-{
-    // Blink for fun
-    led_blue = !led_blue;
-    if (p_osc->format[0] == 'f') {
-        float pwm = tosc_getNextFloat(p_osc);
-        if (pwm > 0 && pwm <=1 ) {
-            driver_A->pwmSet(ALLPORTS, pwm);
-            driver_A->drvEnable(ALLPORTS, true);
-#if B_SIDE == 1
-            driver_B->pwmSet(ALLPORTS, pwm);
-            driver_B->drvEnable(ALLPORTS, true);
-#endif
-        } else if (pwm == 0.0f) {
-            driver_A->pwmSet(ALLPORTS, pwm);
-            driver_A->drvEnable(ALLPORTS, false);
-#if B_SIDE == 1
-            driver_B->pwmSet(ALLPORTS, pwm);
-            driver_B->drvEnable(ALLPORTS, false);
-#endif
-        }
-    }
-}
-
-/* OSC msg  : /main/oe ff CYCLE_RATIO PERIOD_SEC
- * Purpose  : set OE FastPWM config and control blinking of all LEDS at the same time
- * Note     : can be used in conjunction with other functions -- currently we DON'T
- *            touch ENABLE table
- */
-void menu_main_oe()
-{
-    // Blink for fun
-    led_blue = !led_blue;
-    if (p_osc->format[0] == 'f') {
-        float cycle = tosc_getNextFloat(p_osc);
-        if (cycle > 0 && cycle <=1 ) {
-            driver_A->oeCycle(cycle);
-#if B_SIDE == 1
-            driver_B->oeCycle(cycle);
-#endif
-        }
-    }
-    if (p_osc->format[1] == 'f') {
-        float period = tosc_getNextFloat(p_osc);
-        if (period > 0) {
-            driver_A->oePeriod(period);
-#if B_SIDE == 1
-            driver_B->oePeriod(period);
-#endif
-        }
-    }
-}
-
-/* OSC msg  : /main/tone f FREQ
- * Purpose  : Play a "note" in class-D style OUT through all DRV8844 and with OE setting
- * Note     : Very experimental and ugly. But promising.
- */
-void menu_main_tone()
-{
-    // Blink for fun
-    led_blue = !led_blue;
-    if (p_osc->format[0] == 'f') {
-        float tone = tosc_getNextFloat(p_osc);
-        if (tone >0) {
-            // Little sampler Period init
-            driver_A->oePeriod(1.0/200000.0);
-#if B_SIDE == 1
-            driver_B->oePeriod(1.0/200000.0);
-#endif
-            sample_ticker.detach();
-            sample_ticker.attach_us(&sampler_timer, (tone)*128);
-        }
-    }
-}
-
-/* OSC msg  : /main/count i COUNT
+/* OSC msg  : /tools/count i COUNT
  * Purpose  : Just ping pong from client for network reliability test
  */
-void menu_main_count()
+void menu_tools_count()
 {
     // Blink for fun
     led_blue = !led_blue;
@@ -301,11 +431,22 @@ void menu_main_count()
 	}
 }
 
-// Menu parsers to function pointers.
+// Menu parsers to function pointers
 void menu_main()
 {
     for (menu_cases* p_case = main_cases;
             p_case != main_cases + sizeof(main_cases) / sizeof(main_cases[0]);
+            p_case++) {
+        if (strcmp(tosc_getAddress(p_osc), p_case->menu_string) == 0) {
+            (*p_case->menu_func)();
+        }
+    }
+}
+
+void menu_lowlevel()
+{
+    for (menu_cases* p_case = lowlevel_cases;
+            p_case != lowlevel_cases + sizeof(lowlevel_cases) / sizeof(lowlevel_cases[0]);
             p_case++) {
         if (strcmp(tosc_getAddress(p_osc), p_case->menu_string) == 0) {
             (*p_case->menu_func)();

@@ -153,14 +153,16 @@ void CoilDriver::pwmSet(int port, float percent)
 
 /* Simple function to enable/disable ENABLE_PINS (DRV8844)
  */
-void CoilDriver::drvEnable(int port, bool state)
+void CoilDriver::drvEnable(int port, int state)
 {
-    if (port == ALLPORTS) {
-        for (int i = 0; i < ENABLE_PINS; i++) {
-            drv_ena[i] = state;
+    if (state >= 0 && state <= 1) {
+        if (port == ALLPORTS) {
+            for (int i = 0; i < ENABLE_PINS; i++) {
+                drv_ena[i] = state;
+            }
+        } else {
+            drv_ena[port] = state;
         }
-    } else {
-        drv_ena[port] = state;
     }
 }
 
@@ -194,7 +196,7 @@ void CoilDriver::coilOff(int port)
     off(port);
 }
 
-// Check and write PWM ratio (percent) to FastPWM oe
+// Write PWM ratio (percent) to FastPWM oe
 void CoilDriver::oeCycle(float percent)
 {
     if (percent >= 0.0f && percent <= 1.0f)

@@ -4,7 +4,7 @@
 
 * Régler le problème des deux réseaux et de l'initialisation des IP sur puredata
 * -not so ok- Distinguer l'usage d'un seul ou des deux drivers à la fois
-* Tester le reliability d'UDP, et tenter d'implémenter un ack avec puredata
+* -ok- Tester le reliability d'UDP, et tenter d'implémenter un ack avec puredata
 * -ok- Commenter le code
 * Tester l'inversion 0->1 du pca99x6B au repos
 * Retourner un code d'erreur si aucun pca995xB n'est trouvé
@@ -18,13 +18,13 @@
 
 ###### Hardware
 
-* Envisager sérieusement une carte d'extension qui relèverait le courant.
-* Prévoir des entretoises et un support de fixation contre les sommiers
+* -ok- Envisager sérieusement une carte d'extension qui relèverait le courant.
+* -ok- Prévoir des entretoises et un support de fixation contre les sommiers
 * Envisager une boîte de protection ?
 
 ## BUGS :
 
-* Fonction tone cassée depuis la MAJ
+* -ok- Fonction tone cassée depuis la MAJ
 * Encore quelques derniers problèmes d'IP : /debug ss "SURAIGU mod. (v0.1):" "255.255.255.255"
 * -ok- OVERCURRENT fonction un peu bavarde ! Il faut tester avec un bon bouncing
 
