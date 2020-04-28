@@ -9,8 +9,7 @@
 
 #### OSC msg  : /main/oe ff CYCLE_RATIO PERIOD_SEC
  * Purpose   : set OE FastPWM config and control blinking of all LEDS at the same time
- * Note      : can be used in conjunction with other functions -- currently we DON'T
- *             touch ENABLE table
+ * Note      : can be used in conjunction with other functions -- currently we DON'T touch ENABLE table
  * Function  : *menu_main_oe()*
 
 #### OSC msg  : /main/tone f FREQ
@@ -38,12 +37,12 @@
 
 #### OSC msg  : /lowlevel/pwm_all f RATIO
  * Purpose   : control blinking of all LEDS at the same time with RATIO[0:1]
- * Note     : Can be used in conjunction with OE
+ * Note      : Can be used in conjunction with OE
  * Function  : *menu_lowlevel_pwm_all()*
 
 #### OSC msg  : /lowlevel/pwm_state i PORT
  * Purpose   : read the PWM state of PORT
- * Note     : Nothing for now.
+ * Note      : Nothing for now.
  * Function  : *menu_lowlevel_pwm_state()*
 
 ### Tools commands
