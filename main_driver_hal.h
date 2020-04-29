@@ -84,11 +84,24 @@ public:
     /* coilOn function is designed to drive coils through DRV8844 with :
      * - a brief peak (COIL_ATTACK) of COIL_ATTACK_DELAY millisec, then
      * - a sustain of COIL_SUSTAIN millisec
-     * This help saving solenoids int valves.
+     * This help saving solenoids valves.
      */
     void    coilOn(int port, float percent_attack, float percent_sustain, int millisec);
     void    coilOn(int port);
     void    coilOff(int port);
+
+    /* motor function is designed to drive motor with TWO PINS with :
+     * - port and next_port, paired on the same DRV8844 to IN1-IN2 or IN3-IN4
+     * - a speed from -1 to +1
+     * - you can bracke it (all OUT ON) or coast it (all OUT off)
+     * Note : This pairing is because pin 6 (SRC12) is the source for the
+     * low-side FETs of OUT1 and OUT2, and pin 9 (SRC34) is the source for
+     * the low-side FETs of OUT3 and OUT4.
+     * !!! RETURN -1 if ports are wrong !!!
+     */
+    int    motor(int port, int next_port, float percent_speed);
+    int    motorBrake(int port, int next_port);
+    int    motorCoast(int port, int next_port);
 
     /* Special control of OE in PCA9956A, wich allows for hardware blinking
      * and dimming of all LEDs -- connected to NUCLEO_F767ZI and controlled

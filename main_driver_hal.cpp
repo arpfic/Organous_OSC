@@ -209,3 +209,59 @@ void CoilDriver::oePeriod(float period_sec)
     if (period_sec > 0.0f)
         oe.period(period_sec);
 }
+
+/* Set ENABLE and the motor's PWM connected to IN1-IN2 or IN3-IN4 of a DRV8844
+ * in a PUSH-PULL style
+ */
+int CoilDriver::motor(int port, int next_port, float percent_speed){
+    if (next_port % 2 && next_port == port + 1 &&
+            percent_speed >= -1.0f && percent_speed <= 1.0f) {
+        if (percent_speed < 0.0f) {
+            // Set PWM to PUSH PULL
+            led_drv.pwm(port,      (float)1.0 + percent_speed);// Note the "+"
+            led_drv.pwm(next_port, (float)1.0);// inversed :)
+        } else if (percent_speed > 0.0f) {
+            led_drv.pwm(next_port, (float)1.0 - percent_speed);
+            led_drv.pwm(port,      (float)1.0);
+        } else { // speed == 0.0f
+            led_drv.pwm(port,      (float)1.0);
+            led_drv.pwm(next_port, (float)1.0);
+        }
+        // Open valves !
+        drv_ena[port]      = 1;
+        drv_ena[next_port] = 1;
+        return  0;
+    } else {
+        return -1;
+    }
+}
+
+// Brake the motor by turning BOTH ENABLE to 1 *and* the PWM to NULL (1.0)
+int CoilDriver::motorBrake(int port, int next_port) {
+    if (next_port % 2 && next_port == port + 1) {
+        // Set PWM to MAXIMUM
+        led_drv.pwm(port,      (float)1.0);
+        led_drv.pwm(next_port, (float)1.0);
+        // Set ENABLE to 1
+        drv_ena[port]      = 1;
+        drv_ena[next_port] = 1;
+        return  0;
+    } else {
+        return -1;
+    }
+}
+
+// Coast the motor by turning BOTH ENABLE to 0 *and* the PWM to NULL (1.0)
+int CoilDriver::motorCoast(int port, int next_port){
+    if (next_port % 2 && next_port == port + 1) {
+        // Set PWM to MINIMUM
+        led_drv.pwm(port,      (float)1.0);
+        led_drv.pwm(next_port, (float)1.0);
+        // Set ENABLE to 1
+        drv_ena[port]      = 0;
+        drv_ena[next_port] = 0;
+        return  0;
+    } else {
+        return -1;
+    }
+}

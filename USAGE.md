@@ -12,6 +12,21 @@
  * Note      : can be used in conjunction with other functions -- currently we DON'T touch ENABLE table
  * Function  : *menu_main_oe()*
 
+#### OSC msg  : /main/motor iif PORT NEXT_PORT SPEED
+ * Purpose  : drive motor function. SPEED set between -1 and +1
+ * Note     : This is a PUSH/PULL configuration
+ * Function : *menu_main_motor()*
+
+#### OSC msg  : /main/motor_brake ii PORT NEXT_PORT
+ * Purpose  : drive motor_brake function (all enable and pwm sets to 1)
+ * Note     : This is a PUSH/PULL configuration
+ * Function : *menu_main_motor_brake()*
+
+#### OSC msg  : /main/motor_coast ii PORT NEXT_PORT
+ * Purpose  : drive motor_coast function (all enable and pwm sets to 0)
+ * Note     : This is a PUSH/PULL configuration
+ * Function : *menu_main_motor_coast()*
+
 #### OSC msg  : /main/tone f FREQ
  * Purpose   : Play a "note" in class-D style through all DRV8844 OUT and with OE setting
  * Note      : Very experimental and ugly. But promising.

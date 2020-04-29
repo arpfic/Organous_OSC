@@ -24,6 +24,9 @@ void menu_lowlevel();
 void menu_tools();
 
 void menu_main_coil();
+void menu_main_motor();
+void menu_main_motor_brake();
+void menu_main_motor_coast();
 void menu_main_oe();
 void menu_main_tone();
 void menu_lowlevel_output();
@@ -57,9 +60,12 @@ menu_cases cases [] = {
 };
 
 menu_cases main_cases [] = {
-    { "/main/coil",         menu_main_coil         },
-    { "/main/oe",           menu_main_oe           },
-    { "/main/tone",         menu_main_tone         }
+    { "/main/coil",        menu_main_coil        },
+    { "/main/motor",       menu_main_motor       },
+    { "/main/motor_brake", menu_main_motor_brake },
+    { "/main/motor_coast", menu_main_motor_coast },
+    { "/main/oe",          menu_main_oe          },
+    { "/main/tone",        menu_main_tone        }
 };
 
 menu_cases lowlevel_cases [] = {
@@ -118,6 +124,82 @@ void menu_main_coil()
             } else {
                 driver_B->coilOn(port - 24);
             }
+#endif
+        }
+    }
+}
+
+/* OSC msg  : /main/motor iif PORT NEXT_PORT SPEED
+ * Purpose  : drive motor function. SPEED set between -1 and +1
+ * Note     : This is a PUSH/PULL configuration
+ */
+void menu_main_motor(){
+    // Blink for fun
+    led_blue = !led_blue;
+    if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i'
+            && p_osc->format[2] == 'f') {
+        int port      = tosc_getNextInt32(p_osc);
+        int next_port = tosc_getNextInt32(p_osc);
+        float speed   = tosc_getNextFloat(p_osc);
+        if (speed >= -1.0f && speed <= 1.0f &&
+                port >= 0 && port < 23 ) { // port is even
+            int r = driver_A->motor(port, next_port, speed);
+            if (r != 0)
+                debug_OSC("/main/motor : wrong PINs configuration (see manual)");
+#if B_SIDE == 1
+        } else if (speed >= -1.0f && speed <= 1.0f &&
+                port >= 24 && port < 47 ) {
+            int r = driver_B->motor(port - 24, next_port - 24, speed);
+            if (r != 0)
+                debug_OSC("/main/motor : wrong PINs configuration (see manual)");
+#endif
+        }
+    }
+}
+
+/* OSC msg  : /main/motor_brake ii PORT NEXT_PORT
+ * Purpose  : drive motor_brake function (all enable and pwm sets to 1)
+ * Note     : This is a PUSH/PULL configuration
+ */
+void menu_main_motor_brake(){
+    // Blink for fun
+    led_blue = !led_blue;
+    if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i') {
+        int port      = tosc_getNextInt32(p_osc);
+        int next_port = tosc_getNextInt32(p_osc);
+        if (port >= 0 && port < 23 ) { // port is even
+            int r = driver_A->motorBrake(port, next_port);
+            if (r != 0)
+                debug_OSC("/main/motor_brake : wrong PINs configuration (see manual)");
+#if B_SIDE == 1
+        } else if (port >= 24 && port < 47 ) {
+            int r = driver_A->motorBrake(port - 24, next_port - 24);
+            if (r != 0)
+                debug_OSC("/main/motor_brake : wrong PINs configuration (see manual)");
+#endif
+        }
+    }
+}
+
+/* OSC msg  : /main/motor_coast ii PORT NEXT_PORT
+ * Purpose  : drive motor_coast function (all enable and pwm sets to 0)
+ * Note     : This is a PUSH/PULL configuration
+ */
+void menu_main_motor_coast(){
+    // Blink for fun
+    led_blue = !led_blue;
+    if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i') {
+        int port      = tosc_getNextInt32(p_osc);
+        int next_port = tosc_getNextInt32(p_osc);
+        if (port >= 0 && port < 23 ) { // port is even
+            int r = driver_A->motorCoast(port, next_port);
+            if (r != 0)
+                debug_OSC("/main/motor_coast : wrong PINs configuration (see manual)");
+#if B_SIDE == 1
+        } else if (port >= 24 && port < 47 ) {
+            int r = driver_A->motorCoast(port - 24, next_port - 24);
+            if (r != 0)
+                debug_OSC("/main/motor_coast : wrong PINs configuration (see manual)");
 #endif
         }
     }
