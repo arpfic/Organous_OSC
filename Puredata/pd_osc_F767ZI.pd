@@ -1,4 +1,4 @@
-#N canvas 840 32 840 1018 10;
+#N canvas 840 69 840 981 10;
 #X obj 342 280 list prepend send;
 #X obj 342 302 list trim;
 #X obj 342 348 netsend -u -b;
@@ -14,9 +14,9 @@
 #X obj 20 259 t a a a;
 #X msg 20 281 set /main/oe;
 #X obj 23 197 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -262144
--1 -1 4000 1;
+-1 -1 0 1;
 #X obj 163 197 hsl 128 15 0.001 10 1 0 empty empty empty -2 -8 0 10
--262144 -1 -1 3790 0;
+-262144 -1 -1 0 0;
 #X obj 550 490 t a a a;
 #X msg 550 468 1;
 #X msg 550 512 format i;
@@ -64,7 +64,7 @@
 #X obj 508 642 send oscdebug;
 #X obj 20 418 t a a a;
 #X obj 23 356 hsl 128 15 0.1 2000 1 0 empty empty empty -2 -8 0 10
--262144 -1 -1 6900 1;
+-262144 -1 -1 0 1;
 #X obj 20 484 send oscinput;
 #X floatatom 20 375 5 0 0 0 - - -;
 #X msg 20 462 format f;
@@ -124,7 +124,7 @@
 #X msg 217 926 set /lowlevel/pwm_all;
 #X obj 26 904 t a a a;
 #X obj 68 842 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -262144
--1 -1 7600 1;
+-1 -1 0 1;
 #X obj 26 970 send oscinput;
 #X floatatom 65 861 5 0 0 0 - - -;
 #X msg 26 926 set /lowlevel/pwm;
