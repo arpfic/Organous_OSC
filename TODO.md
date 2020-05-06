@@ -24,6 +24,7 @@
 
 ## BUGS :
 
+* Bug entre coil et motor quand on utilise les deux en même temps ?
 * -ok- Fonction tone cassée depuis la MAJ
 * Encore quelques derniers problèmes d'IP : /debug ss "SURAIGU mod. (v0.1):" "255.255.255.255"
 * -ok- OVERCURRENT fonction un peu bavarde ! Il faut tester avec un bon bouncing

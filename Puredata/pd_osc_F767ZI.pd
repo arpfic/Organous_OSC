@@ -1,338 +1,492 @@
-#N canvas 840 69 840 981 10;
-#X obj 360 286 list prepend send;
-#X obj 360 308 list trim;
-#X obj 360 337 netsend -u -b;
-#X msg 481 267 disconnect;
-#X obj 21 17 notein;
-#X floatatom 21 39 5 0 0 0 - - -;
-#X floatatom 67 38 5 0 0 0 - - -;
-#X floatatom 67 17 5 0 0 0 - - -;
-#X obj 337 80 oscparse;
-#X obj 337 102 list trim;
-#X obj 376 168 print debug;
-#X msg 21 104 set /main/coil;
-#X obj 20 259 t a a a;
-#X msg 20 281 set /main/oe;
-#X obj 23 197 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -262144
--1 -1 0 1;
-#X obj 163 197 hsl 128 15 0.001 10 1 0 empty empty empty -2 -8 0 10
--262144 -1 -1 0 0;
-#X obj 579 405 t a a a;
-#X msg 579 383 1;
-#X msg 579 427 format i;
-#X obj 360 242 receive oscinput;
-#X obj 21 148 send oscinput;
-#X obj 20 325 send oscinput;
-#X obj 233 287 list prepend send;
-#X obj 233 309 list trim;
-#X obj 233 338 netsend -u -b;
-#X msg 483 355 disconnect;
-#X msg 483 333 connect 255.255.255.255 12345;
-#X obj 360 264 oscformat -s /main;
-#X obj 579 471 send oscdebug;
-#X obj 233 243 receive oscdebug;
-#X obj 561 187 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
-#X obj 337 146 print main;
-#X msg 160 216 bang;
-#X floatatom 198 216 5 0 0 0 - - -;
-#X floatatom 20 216 5 0 0 0 - - -;
-#X obj 221 720 t a a a;
-#X obj 224 658 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -262144
--1 -1 0 1;
-#X obj 221 786 send oscinput;
-#X floatatom 221 677 5 0 0 0 - - -;
-#X msg 20 303 format ff;
-#X msg 221 764 format f;
-#X obj 221 698 pack 0;
-#X obj 530 553 send oscinput;
-#X obj 530 512 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
-#X obj 532 653 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
-#X obj 531 582 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
-#X obj 449 394 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
-#X msg 532 672 set /tools/hardreset;
-#X msg 531 601 set /tools/softreset;
-#X msg 449 413 set /tools/connect;
-#X msg 579 449 set /tools/debug;
-#X obj 233 265 oscformat -s /tools;
-#X obj 532 694 send oscdebug;
-#X obj 531 623 send oscdebug;
-#X obj 449 435 send oscdebug;
-#X obj 20 418 t a a a;
-#X obj 23 356 hsl 128 15 0.1 2000 1 0 empty empty empty -2 -8 0 10
--262144 -1 -1 0 1;
-#X obj 20 484 send oscinput;
-#X floatatom 20 375 5 0 0 0 - - -;
-#X msg 20 462 format f;
-#X obj 20 396 pack 0;
-#X msg 20 440 set /main/tone;
-#X obj 21 60 pack 0 0;
-#X msg 21 126 format ii;
-#X obj 21 82 t a a a;
-#X obj 20 237 pack 0 0;
-#X floatatom 119 36 5 0 0 0 - - -;
-#X floatatom 164 36 5 0 0 0 - - -;
-#X msg 119 103 set /main/coil;
-#X obj 119 147 send oscinput;
-#X obj 119 59 pack 0 0;
-#X msg 119 125 format ii;
-#X obj 119 81 t a a a;
-#X obj 119 17 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
--1;
-#X floatatom 218 39 5 0 0 0 - - -;
-#X floatatom 264 38 5 0 0 0 - - -;
-#X floatatom 264 17 5 0 0 0 - - -;
-#X obj 218 17 ctlin;
-#X floatatom 218 82 0 0 1 0 - - -;
-#X obj 218 60 pow -1;
-#X obj 250 120 midiin;
-#X floatatom 250 142 0 0 0 0 - - -;
-#X floatatom 283 167 0 0 0 0 - - -;
-#X obj 337 124 route main debug ack;
-#X obj 415 146 print ack;
-#X obj 579 362 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
-#X msg 481 245 connect 172.24.1.143 12345;
-#X obj 337 58 netreceive -u -b 12345;
-#X msg 546 45 listen 12345;
-#X msg 546 67 listen 0;
-#X floatatom 233 363 5 0 0 0 - - -;
-#X floatatom 360 363 5 0 0 0 - - -;
-#X obj 583 186 loadbang;
-#X floatatom 27 515 5 0 48 0 - - -;
-#X floatatom 72 515 1 0 1 0 - - -;
-#X obj 27 624 send oscinput;
-#X obj 27 536 pack 0 0;
-#X msg 27 602 format ii;
-#X obj 27 558 t a a a;
-#X msg 27 580 set /lowlevel/output;
-#X floatatom 165 533 1 0 1 0 - - -;
-#X obj 165 620 send oscinput;
-#X msg 165 576 set /lowlevel/output_all;
-#X obj 165 554 t a a a;
-#X msg 165 598 format i;
-#X floatatom 329 534 5 0 48 0 - - -;
-#X obj 329 621 send oscinput;
-#X obj 329 555 t a a a;
-#X msg 329 599 format i;
-#X msg 329 577 set /lowlevel/output_state;
-#X msg 221 742 set /lowlevel/pwm_all;
-#X obj 30 720 t a a a;
-#X obj 72 658 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -262144
--1 -1 0 1;
-#X obj 30 786 send oscinput;
-#X floatatom 69 677 5 0 0 0 - - -;
-#X msg 30 742 set /lowlevel/pwm;
-#X msg 30 764 format if;
-#X obj 30 698 pack 0 0;
-#X floatatom 30 677 5 0 48 0 - - -;
-#X msg 110 677 bang;
-#X msg 530 531 set /tools/forceoff_all;
-#X obj 339 878 t a a a;
-#X obj 455 816 hsl 128 15 1 3 0 0 empty empty empty -2 -8 0 10 -262144
--1 -1 12700 0;
-#X obj 339 944 send oscinput;
-#X msg 415 855 bang;
-#X floatatom 453 855 5 0 0 0 - - -;
-#X floatatom 339 835 5 0 47 0 - - -;
-#X obj 339 856 pack 0 0 0;
-#X msg 339 922 format iif;
-#X msg 339 900 set /main/motor;
-#X floatatom 375 835 5 0 47 0 - - -;
-#X obj 453 834 - 2;
-#X obj 31 877 t a a a;
-#X obj 31 943 send oscinput;
-#X msg 103 835 bang;
-#X floatatom 31 834 5 0 47 0 - - -;
-#X floatatom 67 834 5 0 47 0 - - -;
-#X obj 31 855 pack 0 0;
-#X msg 31 900 set /main/motor_brake;
-#X msg 31 921 format ii;
-#X obj 179 878 t a a a;
-#X obj 179 944 send oscinput;
-#X msg 251 836 bang;
-#X floatatom 179 835 5 0 47 0 - - -;
-#X floatatom 215 835 5 0 47 0 - - -;
-#X obj 179 856 pack 0 0;
-#X msg 179 922 format ii;
-#X msg 179 900 set /main/motor_coast;
-#X obj 408 796 - 1;
-#X obj 408 746 bendin;
-#X obj 408 770 / 8192;
-#X connect 0 0 1 0;
-#X connect 1 0 2 0;
-#X connect 2 0 91 0;
-#X connect 3 0 2 0;
-#X connect 3 0 86 0;
+#N canvas 840 32 840 1018 10;
+#X obj 6 416 notein;
+#X floatatom 6 438 5 0 0 0 - - -;
+#X floatatom 52 437 5 0 0 0 - - -;
+#X floatatom 52 416 5 0 0 0 - - -;
+#X floatatom 136 438 5 0 0 0 - - -;
+#X floatatom 182 437 5 0 0 0 - - -;
+#X floatatom 182 416 5 0 0 0 - - -;
+#X obj 136 416 ctlin;
+#X floatatom 136 481 0 0 1 0 - - -;
+#X obj 136 459 pow -1;
+#X obj 263 416 midiin;
+#X floatatom 263 438 0 0 0 0 - - -;
+#X floatatom 296 463 0 0 0 0 - - -;
+#X floatatom 7 112 5 0 0 0 - - -;
+#X msg 7 21 172.24.1.143;
+#N canvas 0 69 840 981 osc_interface 0;
+#X obj 368 105 cnv 15 100 60 empty empty empty 20 12 0 10 -262144 -1
+0;
+#X obj 17 18 inlet connect;
+#X obj 225 17 inlet input;
+#X obj 56 609 outlet;
+#X obj 225 235 list prepend send;
+#X obj 225 257 list trim;
+#X obj 225 286 netsend -u -b;
+#X obj 225 213 oscformat -s /tools;
+#X msg 336 470 disconnect;
+#X obj 472 255 oscparse;
+#X obj 472 277 list trim;
+#X obj 511 343 print debug;
+#X obj 472 321 print main;
+#X obj 472 299 route main debug ack;
+#X obj 550 321 print ack;
+#X obj 472 233 netreceive -u -b 12345;
+#X msg 337 403 listen 12345;
+#X msg 341 561 listen 0;
+#X msg 21 395 connect;
+#X msg 78 395 12345;
+#X msg 21 463 \$1 \$2 \$3;
+#X obj 21 435 pack s s f;
+#X obj 104 105 bng 30 250 50 0 empty empty -CONNECT_to: 32 7 0 10 -4034
+-262144 -1;
+#X symbolatom 104 140 16 0 0 0 - - -;
+#X obj 355 62 symbol 255.255.255.255;
+#X msg 8 501 set /tools/connect;
+#X obj 355 39 loadbang;
+#X obj 21 345 t b b s b;
+#X obj 17 44 symbol;
+#X obj 17 69 t b s;
+#X text 245 104 ce petit rectangle gère la connexion réseau avec
+le module OSC, f 18;
+#X text 162 610 DESCRIPTION :;
+#X text 162 646 - ce canvas concentre les commandes qui gèrent la
+communication avec les cartes. Il est nécessaire de lui donner l'adresse
+IP que la carte lui communique au démarrage pour un fonctionnement
+assuré de part et d'autre. À gauche du canvas \, les bidouilles permettent
+d'organiser l'ordre des commandes envoyées pour ouvrir et fermer les
+connections.;
+#X connect 1 0 28 0;
+#X connect 2 0 7 0;
 #X connect 4 0 5 0;
-#X connect 4 1 6 0;
-#X connect 4 2 7 0;
-#X connect 5 0 62 0;
-#X connect 6 0 62 1;
-#X connect 8 0 9 0;
-#X connect 9 0 83 0;
-#X connect 11 0 20 0;
-#X connect 12 0 21 0;
-#X connect 12 1 13 0;
-#X connect 12 2 39 0;
-#X connect 13 0 21 0;
-#X connect 14 0 34 0;
-#X connect 14 0 65 0;
-#X connect 15 0 32 0;
-#X connect 15 0 33 0;
-#X connect 15 0 65 1;
-#X connect 16 1 50 0;
-#X connect 16 2 18 0;
-#X connect 17 0 16 0;
-#X connect 17 0 28 0;
-#X connect 18 0 28 0;
-#X connect 19 0 27 0;
-#X connect 22 0 23 0;
-#X connect 23 0 24 0;
-#X connect 24 0 90 0;
-#X connect 25 0 24 0;
+#X connect 5 0 6 0;
+#X connect 6 0 3 0;
+#X connect 7 0 4 0;
+#X connect 8 0 6 0;
+#X connect 9 0 10 0;
+#X connect 10 0 13 0;
+#X connect 13 0 12 0;
+#X connect 13 1 11 0;
+#X connect 13 2 14 0;
+#X connect 15 0 9 0;
+#X connect 16 0 15 0;
+#X connect 17 0 15 0;
+#X connect 18 0 21 0;
+#X connect 19 0 21 2;
+#X connect 20 0 6 0;
+#X connect 21 0 20 0;
+#X connect 22 0 24 0;
+#X connect 23 0 27 0;
+#X connect 24 0 23 0;
+#X connect 25 0 7 0;
 #X connect 26 0 24 0;
-#X connect 26 0 2 0;
-#X connect 27 0 0 0;
-#X connect 29 0 51 0;
-#X connect 30 0 88 0;
-#X connect 30 0 3 0;
-#X connect 32 0 65 0;
-#X connect 35 0 37 0;
-#X connect 35 1 110 0;
-#X connect 35 2 40 0;
-#X connect 36 0 38 0;
-#X connect 36 0 41 0;
-#X connect 39 0 21 0;
-#X connect 40 0 37 0;
-#X connect 41 0 35 0;
-#X connect 43 0 120 0;
-#X connect 43 0 42 0;
-#X connect 44 0 47 0;
-#X connect 44 0 52 0;
-#X connect 45 0 48 0;
-#X connect 45 0 53 0;
+#X connect 27 0 16 0;
+#X connect 27 0 25 0;
+#X connect 27 0 7 0;
+#X connect 27 1 18 0;
+#X connect 27 2 21 1;
+#X connect 27 3 8 0;
+#X connect 27 3 17 0;
+#X connect 27 3 19 0;
+#X connect 28 0 29 0;
+#X connect 29 0 22 0;
+#X connect 29 1 24 1;
+#X coords 0 -1 1 1 263 62 2 100 100;
+#X restore 7 45 pd osc_interface;
+#X obj 455 112 s oscinput;
+#X obj 263 22 r oscinput;
+#N canvas 810 69 840 981 tools_commands 0;
+#X obj 350 101 cnv 15 100 60 empty empty TOOLS_commands 20 12 0 10
+-262144 -1 0;
+#X obj 106 107 bng 15 250 50 0 empty empty -FORCEOFF_ALL 17 7 0 10
+-262144 -1 -1;
+#X msg 91 235 set /tools/forceoff_all;
+#X obj 221 137 bng 30 250 50 0 empty empty -HARDRESET 32 7 0 10 -258113
+-262144 -1;
+#X obj 106 135 bng 15 250 50 0 empty empty -SOFTRESET 17 7 0 10 -262144
+-1 -1;
+#X msg 392 235 set /tools/hardreset;
+#X msg 251 235 set /tools/softreset;
+#X obj 535 187 t a a a;
+#X msg 535 211 format i;
+#X msg 535 235 set /tools/debug;
+#X obj 526 462 outlet;
+#X obj 231 107 tgl 15 0 empty empty -DEBUG 17 7 0 10 -4160 -262144
+-1 0 1;
+#X floatatom 221 107 1 0 0 0 - - -;
+#X obj 91 259 s tools_outlet;
+#X obj 526 438 r tools_outlet;
+#X obj 251 259 s tools_outlet;
+#X obj 392 259 s tools_outlet;
+#X obj 535 259 s tools_outlet;
+#X obj 536 83 s pdreset;
+#X obj 231 35 r pdreset;
+#X floatatom 231 58 5 0 0 0 - - -;
+#X text 342 122 commandes système \, pour communiquer avec la carte.
+, f 18;
+#X text 46 308 DESCRIPTION :;
+#X text 46 344 - FORCEOFF_ALL permet de remettre à zéro l'état des
+SORTIES *et* des signaux PWM de la carte.;
+#X text 46 413 - SOFTRESET permet de réinitialiser l'ensemble des
+commandes de la carte (intermédiaire).;
+#X text 46 449 - HARDRESET permet de rebooter la carte.;
+#X text 46 379 - DEBUG active un mode bavard : on peut visualiser tout
+ce que reçoit et envoie la carte., f 61;
+#X connect 1 0 2 0;
+#X connect 1 0 13 0;
+#X connect 1 0 18 0;
+#X connect 2 0 13 0;
+#X connect 3 0 5 0;
+#X connect 3 0 16 0;
+#X connect 3 0 18 0;
+#X connect 4 0 6 0;
+#X connect 4 0 15 0;
+#X connect 4 0 18 0;
+#X connect 5 0 16 0;
+#X connect 6 0 15 0;
+#X connect 7 0 17 0;
+#X connect 7 1 9 0;
+#X connect 7 2 8 0;
+#X connect 8 0 17 0;
+#X connect 9 0 17 0;
+#X connect 11 0 12 0;
+#X connect 12 0 7 0;
+#X connect 14 0 10 0;
+#X connect 19 0 20 0;
+#X connect 20 0 11 0;
+#X coords 0 -1 1 1 360 86 2 100 100;
+#X restore 455 21 pd tools_commands;
+#N canvas 830 69 840 981 lowlevel_commands 0;
+#X obj 379 101 cnv 15 100 60 empty empty LOWLEVEL_commands 20 12 0
+10 -262144 -1 0;
+#X obj 543 614 outlet;
+#X obj 660 375 t a a a;
+#X obj 242 208 hsl 64 15 0 1 0 0 empty empty ratio -2 -8 0 10 -261234
+-1 -1 0 0;
+#X floatatom 239 226 5 0 0 0 - - -;
+#X msg 660 419 format f;
+#X obj 660 353 pack 0;
+#X msg -63 321 set /lowlevel/output_all;
+#X obj -63 299 t a a a;
+#X msg -63 343 format i;
+#X obj 61 401 t a a a;
+#X msg 61 445 format i;
+#X msg 61 423 set /lowlevel/output_state;
+#X msg 660 397 set /lowlevel/pwm_all;
+#X obj 724 243 t a a a;
+#X floatatom 148 226 4 0 0 2 - - -;
+#X msg 724 265 set /lowlevel/pwm;
+#X msg 724 287 format if;
+#X obj 724 221 pack 0 0;
+#X msg 724 197 bang;
+#X obj -94 153 pack 0 0;
+#X msg -94 219 format ii;
+#X obj -94 175 t a a a;
+#X msg -94 197 set /lowlevel/output;
+#X msg -94 131 bang;
+#X obj -94 241 s lowlevel_outlet;
+#X obj 543 593 r lowlevel_outlet;
+#X obj 724 309 s lowlevel_outlet;
+#X obj 660 441 s lowlevel_outlet;
+#X obj -63 365 s lowlevel_outlet;
+#X obj 61 467 s lowlevel_outlet;
+#X obj 105 134 nbx 2 14 0 47 0 0 empty empty sortie 0 -8 0 10 -4034
+-1 -1 0 256;
+#X obj 149 134 tgl 15 0 empty empty 0/1 0 -7 0 10 -261234 -1 -1 0 1
+;
+#X text 103 101 OUTPUT;
+#X obj 199 134 tgl 15 0 empty empty 0/1 0 -7 0 10 -261234 -1 -1 0 1
+;
+#X text 197 101 OUTPUT_ALL;
+#X obj 287 136 nbx 3 14 0 47 0 0 empty empty sortie 0 -8 0 10 -4034
+-1 -1 0 256;
+#X text 284 102 OUTPUT_STATE;
+#X obj 105 208 nbx 2 14 0 47 0 0 empty empty sortie 0 -8 0 10 -4034
+-1 -1 0 256;
+#X obj 151 208 hsl 64 15 0 1 0 0 empty empty ratio -2 -8 0 10 -261234
+-1 -1 0 0;
+#X text 103 173 PWM;
+#X text 237 173 PWM_ALL;
+#X obj 105 13 r pdreset;
+#X floatatom 105 36 5 0 0 0 - - -;
+#X obj 309 449 t a a a;
+#X msg 309 406 bang;
+#X msg 309 493 format ff;
+#X obj 309 427 pack 0 0;
+#X msg 309 471 set /lowlevel/oe;
+#X obj 309 515 s lowlevel_outlet;
+#X obj 108 299 hsl 64 15 0 1 0 0 empty empty PWM_ratio -2 -8 0 10 -261234
+-1 -1 0 0;
+#X floatatom 105 317 5 0 0 0 - - -;
+#X text 103 264 OE;
+#X obj 182 299 hsl 64 15 0.01 1 1 0 empty empty période_(sec) -2 -8
+0 10 -261234 -1 -1 0 0;
+#X floatatom 179 317 5 0 0 0 - - -;
+#X text -30 581 DESCRIPTION :;
+#X text 393 122 commandes de bas- niveau à utiliser pour des montages
+plus complexes., f 18;
+#X text -30 617 - OUTPUT et OUTPUT_ALL permettent d'activer/de désactiver
+une SORTIE ou l'ENSEMBLE des sorties de la carte.;
+#X text -30 652 - OUTPUT_STATE questionne la carte sur l'état d'une
+sortie. Celle-ci renvoie l'information dans le terminal de puredata
+!, f 61;
+#X text -30 686 - PWM et PWM_ALL permettent de régler l'INTENSITÉ
+(entre 0 et 1) d'une sortie ou de l'ensemble des sorties de la carte.
+;
+#X text -30 722 - OE est un paramètre spécial du contrôleur de LED
+: il agit comme un oscillateur PWM sur l'ENSEMBLE des sorties d'UNE
+carte (1-24 ou 25-48) \, et PAR DESSUS les signaux PWM ou OUTPUT. Pas
+franchement utile à première vue \, il peut aussi exister comme un
+LFO hardware (voir TONE) \, ou bien conjointement à la commande OUTPUT
+pour contrôler alternativement les sorties. Ici \, on contrôle la
+période et le ratio.;
+#X connect 2 0 28 0;
+#X connect 2 1 13 0;
+#X connect 2 2 5 0;
+#X connect 3 0 4 0;
+#X connect 3 0 6 0;
+#X connect 5 0 28 0;
+#X connect 6 0 2 0;
+#X connect 7 0 29 0;
+#X connect 8 0 29 0;
+#X connect 8 1 7 0;
+#X connect 8 2 9 0;
+#X connect 9 0 29 0;
+#X connect 10 0 30 0;
+#X connect 10 1 12 0;
+#X connect 10 2 11 0;
+#X connect 11 0 30 0;
+#X connect 12 0 30 0;
+#X connect 13 0 28 0;
+#X connect 14 0 27 0;
+#X connect 14 1 16 0;
+#X connect 14 2 17 0;
+#X connect 16 0 27 0;
+#X connect 17 0 27 0;
+#X connect 18 0 14 0;
+#X connect 19 0 18 0;
+#X connect 20 0 22 0;
+#X connect 21 0 25 0;
+#X connect 22 0 25 0;
+#X connect 22 1 23 0;
+#X connect 22 2 21 0;
+#X connect 23 0 25 0;
+#X connect 24 0 20 0;
+#X connect 26 0 1 0;
+#X connect 31 0 20 0;
+#X connect 32 0 20 1;
+#X connect 32 0 24 0;
+#X connect 34 0 8 0;
+#X connect 36 0 10 0;
+#X connect 38 0 18 0;
+#X connect 39 0 15 0;
+#X connect 39 0 19 0;
+#X connect 39 0 18 1;
+#X connect 42 0 43 0;
+#X connect 43 0 31 0;
+#X connect 43 0 32 0;
+#X connect 43 0 34 0;
+#X connect 43 0 36 0;
+#X connect 43 0 38 0;
+#X connect 43 0 39 0;
+#X connect 43 0 3 0;
+#X connect 43 0 50 0;
+#X connect 43 0 53 0;
+#X connect 44 0 49 0;
+#X connect 44 1 48 0;
+#X connect 44 2 46 0;
+#X connect 45 0 47 0;
 #X connect 46 0 49 0;
-#X connect 46 0 54 0;
-#X connect 46 0 30 0;
-#X connect 47 0 52 0;
-#X connect 48 0 53 0;
-#X connect 49 0 54 0;
-#X connect 50 0 28 0;
-#X connect 51 0 22 0;
-#X connect 55 0 57 0;
-#X connect 55 1 61 0;
-#X connect 55 2 59 0;
-#X connect 56 0 58 0;
-#X connect 56 0 60 0;
-#X connect 59 0 57 0;
-#X connect 60 0 55 0;
-#X connect 61 0 57 0;
-#X connect 62 0 64 0;
-#X connect 63 0 20 0;
-#X connect 64 0 20 0;
-#X connect 64 1 11 0;
-#X connect 64 2 63 0;
-#X connect 65 0 12 0;
-#X connect 66 0 70 0;
-#X connect 67 0 70 1;
-#X connect 68 0 69 0;
-#X connect 70 0 72 0;
-#X connect 71 0 69 0;
-#X connect 72 0 69 0;
-#X connect 72 1 68 0;
-#X connect 72 2 71 0;
-#X connect 73 0 66 0;
-#X connect 74 0 79 0;
-#X connect 77 0 74 0;
-#X connect 77 1 75 0;
-#X connect 77 2 76 0;
-#X connect 78 0 15 0;
-#X connect 79 0 78 0;
-#X connect 80 0 81 0;
-#X connect 80 1 82 0;
-#X connect 83 0 31 0;
-#X connect 83 1 10 0;
-#X connect 83 2 84 0;
-#X connect 85 0 17 0;
-#X connect 86 0 2 0;
-#X connect 87 0 8 0;
-#X connect 88 0 87 0;
-#X connect 89 0 87 0;
-#X connect 92 0 26 0;
-#X connect 92 0 88 0;
-#X connect 93 0 96 0;
-#X connect 94 0 96 1;
-#X connect 96 0 98 0;
-#X connect 97 0 95 0;
-#X connect 98 0 95 0;
-#X connect 98 1 99 0;
-#X connect 98 2 97 0;
-#X connect 99 0 95 0;
-#X connect 100 0 103 0;
-#X connect 102 0 101 0;
-#X connect 103 0 101 0;
-#X connect 103 1 102 0;
-#X connect 103 2 104 0;
-#X connect 104 0 101 0;
-#X connect 105 0 107 0;
-#X connect 107 0 106 0;
-#X connect 107 1 109 0;
-#X connect 107 2 108 0;
-#X connect 108 0 106 0;
-#X connect 109 0 106 0;
-#X connect 110 0 37 0;
-#X connect 111 0 113 0;
-#X connect 111 1 115 0;
-#X connect 111 2 116 0;
-#X connect 112 0 114 0;
-#X connect 112 0 117 1;
-#X connect 112 0 119 0;
-#X connect 115 0 113 0;
-#X connect 116 0 113 0;
-#X connect 117 0 111 0;
-#X connect 118 0 117 0;
-#X connect 119 0 117 0;
-#X connect 120 0 42 0;
-#X connect 121 0 123 0;
-#X connect 121 1 129 0;
-#X connect 121 2 128 0;
-#X connect 122 0 124 0;
-#X connect 122 0 131 0;
-#X connect 124 0 127 0;
-#X connect 125 0 127 2;
-#X connect 126 0 127 0;
-#X connect 127 0 121 0;
-#X connect 128 0 123 0;
-#X connect 129 0 123 0;
-#X connect 130 0 127 1;
-#X connect 130 0 124 0;
-#X connect 131 0 125 0;
-#X connect 132 0 133 0;
-#X connect 132 1 138 0;
-#X connect 132 2 139 0;
-#X connect 134 0 137 0;
-#X connect 135 0 137 0;
-#X connect 136 0 134 0;
-#X connect 136 0 137 1;
-#X connect 137 0 132 0;
-#X connect 138 0 133 0;
-#X connect 139 0 133 0;
-#X connect 140 0 141 0;
-#X connect 140 1 147 0;
-#X connect 140 2 146 0;
-#X connect 142 0 145 0;
-#X connect 143 0 145 0;
-#X connect 144 0 142 0;
-#X connect 144 0 145 1;
-#X connect 145 0 140 0;
-#X connect 146 0 141 0;
-#X connect 147 0 141 0;
-#X connect 148 0 125 0;
-#X connect 148 0 124 0;
-#X connect 149 0 150 0;
-#X connect 150 0 148 0;
+#X connect 47 0 44 0;
+#X connect 48 0 49 0;
+#X connect 50 0 51 0;
+#X connect 51 0 47 0;
+#X connect 53 0 54 0;
+#X connect 54 0 47 1;
+#X connect 54 0 45 0;
+#X coords 0 -1 1 1 412 238 2 100 100;
+#X restore 403 156 pd lowlevel_commands;
+#X obj 403 399 s oscinput;
+#N canvas 0 69 840 981 main_commands 0;
+#X obj 385 101 cnv 15 100 60 empty empty MAIN_commands 20 12 0 10 -262144
+-1 0;
+#X msg -12 261 set /main/coil;
+#X obj 69 381 t a a a;
+#X msg 69 425 format f;
+#X obj 69 359 pack 0;
+#X msg 69 403 set /main/tone;
+#X obj -12 217 pack 0 0;
+#X msg -12 283 format ii;
+#X obj -12 239 t a a a;
+#X obj 373 541 t a a a;
+#X msg 373 497 bang;
+#X obj 373 519 pack 0 0 0;
+#X msg 373 585 format iif;
+#X msg 373 563 set /main/motor;
+#X obj 411 497 - 2;
+#X obj 470 445 t a a a;
+#X msg 470 401 bang;
+#X obj 470 423 pack 0 0;
+#X msg 470 468 set /main/motor_brake;
+#X msg 470 489 format ii;
+#X obj 575 350 t a a a;
+#X msg 575 306 bang;
+#X obj 575 328 pack 0 0;
+#X msg 575 394 format ii;
+#X msg 575 372 set /main/motor_coast;
+#X obj 16 601 - 1;
+#X obj 16 551 bendin;
+#X obj 16 575 / 8192;
+#X obj 17 749 outlet;
+#X obj 17 728 r main_outlet;
+#X obj -12 305 s main_outlet;
+#X obj 69 447 s main_outlet;
+#X obj 470 511 s main_outlet;
+#X obj 575 416 s main_outlet;
+#X obj 373 607 s main_outlet;
+#X obj 105 136 nbx 3 14 0 47 0 0 empty empty sortie 0 -8 0 10 -4034
+-1 -1 0 256;
+#X obj 146 136 nbx 3 14 0 256 0 0 empty empty vélocité 0 -8 0 10
+-261234 -1 -1 0 256;
+#X text 103 102 COIL;
+#X obj 108 202 hsl 64 15 0.01 2000 1 0 empty empty value -2 -8 0 10
+-261234 -1 -1 0 0;
+#X floatatom 105 220 5 0 0 0 - - -;
+#X text 103 167 TONE;
+#X obj 289 287 nbx 3 14 0 47 0 0 empty empty sortie 0 -8 0 10 -4034
+-1 -1 0 256;
+#X obj 330 287 nbx 3 14 0 47 0 0 empty empty sortie2 0 -8 0 10 -4034
+-1 -1 0 256;
+#X text 287 253 MOTOR_BRAKE;
+#X obj 395 287 nbx 3 14 0 47 0 0 empty empty sortie 0 -8 0 10 -4034
+-1 -1 0 256;
+#X obj 436 287 nbx 3 14 0 47 0 0 empty empty sortie2 0 -8 0 10 -4034
+-1 -1 0 256;
+#X text 393 253 MOTOR_COAST;
+#X obj 106 286 nbx 3 14 0 47 0 0 empty empty sortie 0 -8 0 10 -4034
+-1 -1 0 256;
+#X obj 147 286 nbx 3 14 0 47 0 0 empty empty sortie2 0 -8 0 10 -4034
+-1 -1 0 256;
+#X text 104 252 MOTOR;
+#X obj 195 286 hsl 64 15 1 3 0 0 empty empty ratio -2 -8 0 10 -261234
+-1 -1 0 0;
+#X floatatom 192 304 5 0 0 0 - - -;
+#X text 371 122 série de commandes de haut niveau pour des usages
+variés., f 18;
+#X obj 105 13 r pdreset;
+#X floatatom 105 36 5 0 0 0 - - -;
+#X text 204 621 DESCRIPTION :;
+#X text 70 549 j'hésite à retirer ce truc mais c'est rigolo, f 12
+;
+#X text 204 657 - COIL est une commande pour jouer avec des bobines
+\, branchées sur une seule sortie. Ici on règle l'index de SORTIE
+\, et la vélocité (pour être compatible avec le midi). Une vélocité
+supérieure à 0 active la bobine \, et une vélocité de 0 la referme.
+Permet de jouer à plusieurs aussi (activer DEBUG pour avoir des retours
+de l'usage). NB : la bobine est énergisée à son maximum pendant
+les premiers temps \, uis est relachée à un RATIO PWM qui l'empêche
+de chauffer.;
+#X text 204 784 - TONE est une fonction expérimentale et buggée :
+elle agît comme un ampli CLASSE D sur la commande OE pour générer
+soit un LFO \, soit une note. Précisément \, la valeur gère la VARIATION
+du RATIO d'un signal PWM appliqué sur OE. Il est possible de relire
+plein de fois cette phrase pour comprendre \, ou bien de regarder sur
+wikipedia !, f 61;
+#X text 204 872 - MOTOR est une commande pour jouer avec un moteur
+branché (attention !) à DEUX SORTIES. IMPORTANT : elles doivent non
+seulement se suivre telles qu'elles correspondent aux OUT1/OUT2 ou
+OUT3/OUT4 des drivers. Facile : 1-2 \, 3-4 MAIS PAS 2-3 \, etc. RATIO
+permet de régler l'INTENSITÉ du signal envoyé au moteur.;
+#X text 204 961 - MOTOR_BRAKE et MOTOR_COAST permettent de stopper
+un moteur de deux façons différentes : soit on le braque pour l'arrêter
+net \, soit on le laisse ralentir et s'arrêter de lui-même avec COAST.
+;
+#X connect 1 0 30 0;
+#X connect 2 0 31 0;
+#X connect 2 1 5 0;
+#X connect 2 2 3 0;
+#X connect 3 0 31 0;
+#X connect 4 0 2 0;
+#X connect 5 0 31 0;
+#X connect 6 0 8 0;
+#X connect 7 0 30 0;
+#X connect 8 0 30 0;
+#X connect 8 1 1 0;
+#X connect 8 2 7 0;
+#X connect 9 0 34 0;
+#X connect 9 1 13 0;
+#X connect 9 2 12 0;
+#X connect 10 0 11 0;
+#X connect 11 0 9 0;
+#X connect 12 0 34 0;
+#X connect 13 0 34 0;
+#X connect 14 0 51 0;
+#X connect 15 0 32 0;
+#X connect 15 1 18 0;
+#X connect 15 2 19 0;
+#X connect 16 0 17 0;
+#X connect 17 0 15 0;
+#X connect 18 0 32 0;
+#X connect 19 0 32 0;
+#X connect 20 0 33 0;
+#X connect 20 1 24 0;
+#X connect 20 2 23 0;
+#X connect 21 0 22 0;
+#X connect 22 0 20 0;
+#X connect 23 0 33 0;
+#X connect 24 0 33 0;
+#X connect 25 0 10 0;
+#X connect 25 0 51 0;
+#X connect 26 0 27 0;
+#X connect 27 0 25 0;
+#X connect 29 0 28 0;
+#X connect 35 0 6 0;
+#X connect 36 0 6 1;
+#X connect 38 0 39 0;
+#X connect 38 0 4 0;
+#X connect 41 0 17 0;
+#X connect 42 0 16 0;
+#X connect 42 0 17 1;
+#X connect 44 0 22 0;
+#X connect 45 0 21 0;
+#X connect 45 0 22 1;
+#X connect 47 0 11 0;
+#X connect 48 0 11 1;
+#X connect 48 0 10 0;
+#X connect 50 0 14 0;
+#X connect 50 0 10 0;
+#X connect 51 0 11 2;
+#X connect 53 0 54 0;
+#X connect 54 0 35 0;
+#X connect 54 0 36 0;
+#X connect 54 0 38 0;
+#X connect 54 0 47 0;
+#X connect 54 0 48 0;
+#X connect 54 0 50 0;
+#X connect 54 0 41 0;
+#X connect 54 0 42 0;
+#X connect 54 0 44 0;
+#X connect 54 0 45 0;
+#X coords 0 -1 1 1 391 225 2 100 100;
+#X restore 6 156 pd main_commands;
+#X obj 6 386 s oscinput;
+#X text 4 2 IP du module;
+#X text 41 115 statut de la connection;
+#X text 312 63 NB : OUVRIR LES CANVAS POUR VOIR LES DESCRIPTIONS,
+f 17;
+#X connect 0 0 1 0;
+#X connect 0 1 2 0;
+#X connect 0 2 3 0;
+#X connect 4 0 9 0;
+#X connect 7 0 4 0;
+#X connect 7 1 5 0;
+#X connect 7 2 6 0;
+#X connect 9 0 8 0;
+#X connect 10 0 11 0;
+#X connect 10 1 12 0;
+#X connect 14 0 15 0;
+#X connect 15 0 13 0;
+#X connect 17 0 15 1;
+#X connect 18 0 16 0;
+#X connect 19 0 20 0;
+#X connect 21 0 22 0;

@@ -27,7 +27,6 @@ void menu_main_coil();
 void menu_main_motor();
 void menu_main_motor_brake();
 void menu_main_motor_coast();
-void menu_main_oe();
 void menu_main_tone();
 void menu_lowlevel_output();
 void menu_lowlevel_output_all();
@@ -35,6 +34,7 @@ void menu_lowlevel_output_state();
 void menu_lowlevel_pwm();
 void menu_lowlevel_pwm_all();
 void menu_lowlevel_pwm_state();
+void menu_lowlevel_oe();
 void menu_tools_connect();
 void menu_tools_debug();
 void menu_tools_hardreset();
@@ -64,7 +64,6 @@ menu_cases main_cases [] = {
     { "/main/motor",       menu_main_motor       },
     { "/main/motor_brake", menu_main_motor_brake },
     { "/main/motor_coast", menu_main_motor_coast },
-    { "/main/oe",          menu_main_oe          },
     { "/main/tone",        menu_main_tone        }
 };
 
@@ -74,7 +73,8 @@ menu_cases lowlevel_cases [] = {
     { "/lowlevel/output_state", menu_lowlevel_output_state },
     { "/lowlevel/pwm",          menu_lowlevel_pwm          },
     { "/lowlevel/pwm_all",      menu_lowlevel_pwm_all      },
-    { "/lowlevel/pwm_state",    menu_lowlevel_pwm_state    }
+    { "/lowlevel/pwm_state",    menu_lowlevel_pwm_state    },
+    { "/lowlevel/oe",           menu_lowlevel_oe           }
 };
 
 menu_cases tools_cases [] = {
@@ -200,35 +200,6 @@ void menu_main_motor_coast(){
             int r = driver_A->motorCoast(port - 24, next_port - 24);
             if (r != 0)
                 debug_OSC("/main/motor_coast : wrong PINs configuration (see manual)");
-#endif
-        }
-    }
-}
-
-/* OSC msg  : /main/oe ff CYCLE_RATIO PERIOD_SEC
- * Purpose  : set OE FastPWM config and control blinking of all LEDS at the same time
- * Note     : can be used in conjunction with other functions -- currently we DON'T
- *            touch ENABLE table
- */
-void menu_main_oe()
-{
-    // Blink for fun
-    led_blue = !led_blue;
-    if (p_osc->format[0] == 'f') {
-        float cycle = tosc_getNextFloat(p_osc);
-        if (cycle > 0 && cycle <=1 ) {
-            driver_A->oeCycle(cycle);
-#if B_SIDE == 1
-            driver_B->oeCycle(cycle);
-#endif
-        }
-    }
-    if (p_osc->format[1] == 'f') {
-        float period = tosc_getNextFloat(p_osc);
-        if (period > 0) {
-            driver_A->oePeriod(period);
-#if B_SIDE == 1
-            driver_B->oePeriod(period);
 #endif
         }
     }
@@ -398,6 +369,35 @@ void menu_lowlevel_pwm_all()
  */
 void menu_lowlevel_pwm_state(){}
 
+/* OSC msg  : /lowlevel/oe ff CYCLE_RATIO PERIOD_SEC
+ * Purpose  : set OE FastPWM config and control blinking of all LEDS at the same time
+ * Note     : can be used in conjunction with other functions -- currently we DON'T
+ *            touch ENABLE table
+ */
+void menu_lowlevel_oe()
+{
+    // Blink for fun
+    led_blue = !led_blue;
+    if (p_osc->format[0] == 'f') {
+        float cycle = tosc_getNextFloat(p_osc);
+        if (cycle > 0 && cycle <=1 ) {
+            driver_A->oeCycle(cycle);
+#if B_SIDE == 1
+            driver_B->oeCycle(cycle);
+#endif
+        }
+    }
+    if (p_osc->format[1] == 'f') {
+        float period = tosc_getNextFloat(p_osc);
+        if (period > 0) {
+            driver_A->oePeriod(period);
+#if B_SIDE == 1
+            driver_B->oePeriod(period);
+#endif
+        }
+    }
+}
+
 /* OSC msg  : /tools/connect NONE (Bang)
  * Purpose  : connect NUCLEO_F767ZI to client (set IP address)
  */
@@ -420,8 +420,16 @@ void menu_tools_connect()
  */
 void menu_tools_debug()
 {
-    debug_on = 1;
-    debug_OSC("DEBUG ON");
+    if (p_osc->format[0] == 'i') {
+        int i = tosc_getNextInt32(p_osc);
+        if (i == 0) {
+            debug_on = 0;
+            debug_OSC("DEBUG OFF");
+        } else {
+            debug_on = 1;
+            debug_OSC("DEBUG ON");
+        }
+    }
 }
 
 /* OSC msg  : /tools/hardreset NONE (Bang)

@@ -7,11 +7,6 @@
  * Note      : For now, INTENSITY is almost useless : we just launch coilOff if == 0
  * Function  : *menu_main_coil()*
 
-#### OSC msg  : /main/oe ff CYCLE_RATIO PERIOD_SEC
- * Purpose   : set OE FastPWM config and control blinking of all LEDS at the same time
- * Note      : can be used in conjunction with other functions -- currently we DON'T touch ENABLE table
- * Function  : *menu_main_oe()*
-
 #### OSC msg  : /main/motor iif PORT NEXT_PORT SPEED
  * Purpose  : drive motor function. SPEED set between -1 and +1
  * Note     : This is a PUSH/PULL configuration
@@ -59,6 +54,11 @@
  * Purpose   : read the PWM state of PORT
  * Note      : Nothing for now.
  * Function  : *menu_lowlevel_pwm_state()*
+
+#### OSC msg  : /lowlevel/oe ff CYCLE_RATIO PERIOD_SEC
+ * Purpose   : set OE FastPWM config and control blinking of all LEDS at the same time
+ * Note      : can be used in conjunction with other functions -- currently we DON'T touch ENABLE table
+ * Function  : *menu_lowlevel_oe()*
 
 ### Tools commands
 
