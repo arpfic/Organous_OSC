@@ -28,6 +28,7 @@
 #include "UDPSocket.h"
 //#include "TCPSocket.h"
 #include "FastPWM.h"
+#include "SoftPWM.h"
 #include "main_driver_hal.h"
 #include "PCA9956A.h"
 #include "tOSC.h"
@@ -86,10 +87,10 @@ DigitalOut  led_red(LED_RED);
 InterruptIn button(USER_BUTTON);
 
 // Ethernet interface pointers
-EthernetInterface *eth;
-UDPSocket *my_socket;
+EthernetInterface   *eth;
+UDPSocket           *my_socket;
 //TCPSocket *my_socket;
-SocketAddress *source_addr;
+SocketAddress       *source_addr;
 /* NET I/O queue and thread : it's important to be always available to incoming
  * packets
  */

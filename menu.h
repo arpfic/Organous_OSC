@@ -218,8 +218,11 @@ void menu_main_tone()
         if (tone >0) {
             // Little sampler Period init
             driver_A->oePeriod(1.0/200000.0);
+            driver_A->drvEnable(ALLPORTS, 1);
 #if B_SIDE == 1
             driver_B->oePeriod(1.0/200000.0);
+            driver_B->drvEnable(ALLPORTS, 1);
+
 #endif
             sample_ticker.detach();
             sample_ticker.attach_us(&sampler_timer, (tone)*128);
@@ -410,7 +413,7 @@ void menu_tools_connect()
     delete source_addr;
     source_addr = new SocketAddress;
 
-    debug_OSC("OK");
+    debug_OSC("CONNECTION OK");
     if (debug_on)
         debug_OSC(master_address);
 }

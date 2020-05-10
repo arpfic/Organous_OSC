@@ -23,6 +23,7 @@
 #include "config.h"
 #include "PinDetect.h"
 #include "FastPWM.h"
+#include "SoftPWM.h"
 #include "PCA9956A.h"
 
 /* CoilDriver class, a HAL for controling OUT pins with :
@@ -47,7 +48,7 @@ private:
 
     PCA9956A*   led_drv_p;
     PCA9956A    &led_drv;
-    FastPWM oe;
+    FastPWM     oe;
 
     void    init(void);
     void    coilSustain(int port, float percent_sustain);
@@ -70,8 +71,8 @@ public:
     int OUTRegister[ENABLE_PINS];
 
     // Note : all DRV8844s shared RESET and FAULT PINS.
-    DigitalOut drv_rst;
-    PinDetect drv_fault;
+    DigitalOut  drv_rst;
+    PinDetect   drv_fault;
     // pointer to DRV8844s driver_X_table ENABLE PINS (see main.h)
     DigitalOut* drv_ena;
 

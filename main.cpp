@@ -111,12 +111,10 @@ void button_released()
     led_red = 0;
 }
 
-// TONE experimental BROKED function -- Interrupt routine
+// TONE experimental BROKEN function -- Interrupt routine
 // used to output next analog sample whenever a timer interrupt occurs
 void sampler_timer()
 {
-    driver_A->drvEnable(ALLPORTS, 1);
-    driver_B->drvEnable(ALLPORTS, 1);
     // send next analog sample out to D to A
     driver_A->oeCycle(sinusoid_data[k]);
 #if B_SIDE == 1
@@ -206,7 +204,7 @@ int main()
      */
     init_msgON();
 
-    // BROKEN tone function : precompute 128 sample points on one sine wave cycle
+    // (not so) BROKEN tone function : precompute 128 sample points on one sine wave cycle
     // used for continuous sine wave output later
     for(int i=0; i<128; i++) {
         sinusoid_data[i]=((1.0 + sin((float(i)/128.0*6.28318530717959)))/2.0);

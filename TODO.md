@@ -2,7 +2,9 @@
 
 ###### Software
 
-* Régler le problème des deux réseaux et de l'initialisation des IP sur puredata
+* faire un registre précis de l'état des configs, que puredata peut rappeler
+* créer un pwm software pour les ENABLE
+* -ok- régler le problème des deux réseaux et de l'initialisation des IP sur puredata
 * -not so ok- Distinguer l'usage d'un seul ou des deux drivers à la fois
 * -ok- Tester le reliability d'UDP, et tenter d'implémenter un ack avec puredata
 * -ok- Commenter le code
