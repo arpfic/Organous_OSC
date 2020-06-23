@@ -108,7 +108,7 @@ tosc_message* p_osc;
 // Packet size limitation = MAX_PQT_LENGTH
 char    mainpacket_buffer[MAX_PQT_LENGTH];
 int     mainpacket_length = 0;
-# Circular buffer between ethernet socket and I2C
+// Circular buffer between ethernet socket and I2C
 CircularBuffer<socketpacket*, PACKETS_TABLE_SIZE> socketpacket_buf;
 
 // Pointers to DRV8844 Driver class
