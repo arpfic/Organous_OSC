@@ -24,6 +24,7 @@
 static void handle_socket()
 {
     queue.call(receive_message);
+//    receive_message();
 }
 
 // Read data from the socket
@@ -31,13 +32,24 @@ static void receive_message()
 {
     // Zeroing the buffer
     memset(mainpacket_buffer, 0, sizeof(mainpacket_buffer));
-    bool something_in_socket = true;
     // Read all messages
+    bool something_in_socket = true;
     while (something_in_socket) {
-        mainpacket_length = my_socket->recvfrom(source_addr,
-                mainpacket_buffer, sizeof(mainpacket_buffer) - 1);
+        // Copy to the temporary buffer
+        mainpacket_length = my_socket->recvfrom(source_addr, mainpacket_buffer, sizeof(mainpacket_buffer) - 1);
         if (mainpacket_length > 0) {
-            handler_Packetevent();
+            // Allocate a new packet in the buffer table :
+            socketpacket* new_packet = create_buffer(mainpacket_length);
+            if (new_packet == NULL) {
+                led_red = !led_red;
+                delete_array(new_packet);
+            } else {
+		// Copy to the packet...
+                memcpy(new_packet->data, mainpacket_buffer, mainpacket_length);
+                new_packet->size = mainpacket_length;
+                // ... then inject it to Circularbuffer
+                socketpacket_buf.push(new_packet);
+            }
         } else if (mainpacket_length != NSAPI_ERROR_WOULD_BLOCK) {
             // Error while receiving
             led_red = !led_red;
@@ -46,50 +58,6 @@ static void receive_message()
             // Or there was nothing to read.
             something_in_socket = false;
         }
-    }
-}
-
-/* Here we realy decode OSC messages -- and we parse addr to menu subfunctions
- */
-void handler_Packetevent()
-{
-    if (debug_on == 1)
-        debug_OSCmsg(mainpacket_buffer, mainpacket_length);
-
-    tosc_message osc;
-    p_osc = &osc;
-
-    if (tosc_isBundle(mainpacket_buffer)) {
-        // Blink for fun
-        led_blue = !led_blue;
-
-        tosc_bundle bundle;
-        tosc_parseBundle(&bundle, mainpacket_buffer, mainpacket_length);
-
-        while (tosc_getNextMessage(&bundle, &osc)) {
-            for (menu_cases* p_case = cases;
-                    p_case != cases + sizeof(cases) / sizeof(cases[0]);
-                    p_case++) {
-                if (strncmp(tosc_getAddress(&osc), p_case->menu_string,
-                            strlen(p_case->menu_string)) == 0) {
-                    (*p_case->menu_func)();
-                }
-            }
-        }
-    } else if (!tosc_parseMessage(&osc, mainpacket_buffer, mainpacket_length)) {
-        // Blink for fun
-        led_blue = !led_blue;
-
-		for (menu_cases* p_case = cases;
-                p_case != cases + sizeof(cases) / sizeof(cases[0]);
-                p_case++) {
-                if (strncmp(tosc_getAddress(&osc), p_case->menu_string,
-                            strlen(p_case->menu_string)) == 0) {
-                    (*p_case->menu_func)();
-                }
-		}
-    } else {
-        led_red = !led_red;
     }
 }
 
@@ -232,11 +200,59 @@ int main()
 
     // Dispatch forever the queue, directly and not in a thread (bugs appends) NO !
     // Dispatch forever the queue in a thread :
-    //thrd.start(callback(&queue, &EventQueue::dispatch_forever));
+    thrd.start(callback(&queue, &EventQueue::dispatch_forever));
 
     while (true) {
-//        led_red = !led_red;
-		queue.dispatch_forever();
+//      led_red = !led_red;
+//	queue.dispatch_forever();
         // Not even sleep !
+
+        /* Here we realy decode OSC messages -- and we parse addr to menu subfunctions
+        */
+        while (!socketpacket_buf.empty()) {
+            socketpacket* packet;
+            socketpacket_buf.pop(packet);
+
+            if (debug_on == 1)
+                debug_OSCmsg(packet->data, packet->size);
+
+            tosc_message osc;
+            p_osc = &osc;
+
+            if (tosc_isBundle(packet->data)) {
+                // Blink for fun
+                led_blue = !led_blue;
+
+                tosc_bundle bundle;
+                tosc_parseBundle(&bundle, packet->data, packet->size);
+
+                while (tosc_getNextMessage(&bundle, &osc)) {
+                    for (menu_cases* p_case = cases;
+                            p_case != cases + sizeof(cases) / sizeof(cases[0]);
+                            p_case++) {
+                        if (strncmp(tosc_getAddress(&osc), p_case->menu_string,
+                                    strlen(p_case->menu_string)) == 0) {
+                            (*p_case->menu_func)();
+                        }
+                    }
+                }
+            } else if (!tosc_parseMessage(&osc, packet->data, packet->size)) {
+                // Blink for fun
+                led_blue = !led_blue;
+
+                for (menu_cases* p_case = cases;
+                        p_case != cases + sizeof(cases) / sizeof(cases[0]);
+                        p_case++) {
+                            if (strncmp(tosc_getAddress(&osc), p_case->menu_string,
+                                    strlen(p_case->menu_string)) == 0) {
+                            (*p_case->menu_func)();
+                        }
+                }
+            } else {
+                led_red = !led_red;
+            }
+	    // Delete memory allocation
+            delete_array(packet);
+        }
     }
 }

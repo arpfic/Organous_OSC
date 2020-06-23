@@ -47,13 +47,14 @@
  * OSC_CLIENT_PORT      : the port of the client (e.g. puredata)
  * MAX_PQT_LENGTH       : MAXIMUM UDP packet length
  * MAX_PQT_SENDLENGTH   : MAXIMUM UDP send packet length
- * CIRCUL_BUF_SIZE      : INTERNAL RX buffer size
+ * PACKETS_TABLE_SIZE   : INTERNAL RX TABLE size
+ * QUEUE_EVENTS         : SIZE of the incoming queue
  */
 #define OSC_CLIENT_PORT                         9000
 #define MAX_PQT_LENGTH                          8192
 #define MAX_PQT_SENDLENGTH                      512
-#define CIRCUL_BUF_SIZE                         32768
-
+#define PACKETS_TABLE_SIZE                      32
+#define QUEUE_EVENTS                            1024
 /* -----------------------------------------------------------------------------
  * I2C address of PCA9956B
  * (Please refer to https://www.nxp.com/docs/en/data-sheet/PCA9956B.pdf)

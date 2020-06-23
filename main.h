@@ -30,6 +30,7 @@
 #include "FastPWM.h"
 #include "SoftPWM.h"
 #include "platform/CircularBuffer.h"
+#include "main_socket_buffer.h"
 #include "main_driver_hal.h"
 #include "PCA9956A.h"
 #include "tOSC.h"
@@ -95,7 +96,7 @@ SocketAddress       *source_addr;
 /* NET I/O queue and thread : it's important to be always available to incoming
  * packets
  */
-EventQueue queue(256 * EVENTS_EVENT_SIZE);
+EventQueue queue(QUEUE_EVENTS * EVENTS_EVENT_SIZE);
 Thread thrd;
 
 // SameThread but for (hopefully not so often) DRV8844 errors
@@ -107,7 +108,8 @@ tosc_message* p_osc;
 // Packet size limitation = MAX_PQT_LENGTH
 char    mainpacket_buffer[MAX_PQT_LENGTH];
 int     mainpacket_length = 0;
-//CircularBuffer<char, CIRCUL_BUF_SIZE> mainpacket_cirbuffer;
+# Circular buffer between ethernet socket and I2C
+CircularBuffer<socketpacket*, PACKETS_TABLE_SIZE> socketpacket_buf;
 
 // Pointers to DRV8844 Driver class
 CoilDriver* driver_A;
