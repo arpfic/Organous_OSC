@@ -28,8 +28,8 @@
 class PCA995xA : public CompLedDvrCC
 {
 public:
-    PCA995xA( PinName i2c_sda, PinName i2c_scl, char i2c_address = DEFAULT_I2C_ADDR );
-    PCA995xA( I2C &i2c_obj, char i2c_address = DEFAULT_I2C_ADDR );
+    PCA995xA( PinName i2c_sda, PinName i2c_scl, event_callback_t cb_function, char i2c_address = DEFAULT_I2C_ADDR );
+    PCA995xA( I2C &i2c_obj, event_callback_t cb_function, char i2c_address = DEFAULT_I2C_ADDR );
     virtual ~PCA995xA();
 
     void            reset( void );
@@ -44,14 +44,17 @@ public:
 
     void            write( char reg_addr, char data );
     void            write( char *data, int length );
-    char            read( char reg_addr );
-    void            read( char reg_addr, char *data, int length );
+//    char            read( char reg_addr );
+//    void            read( char reg_addr, char *data, int length );
 
 protected:
     enum {
         DEFAULT_I2C_ADDR    = 0xC0,
         AUTO_INCREMENT      = 0x80
     };
+    
+    void            internal_cb_handler(int event);
+    char rx_buf[1];
 
 private:
     virtual char    pwm_register_access( int port )     = 0;
@@ -59,6 +62,7 @@ private:
 
     I2C             *i2c_p;
     I2C             &i2c;
+    event_callback_t cb_function_p;
     char            address;    //  I2C slave address
 }
 ;

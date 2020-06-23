@@ -28,6 +28,7 @@ int debug_OSCwritemsg(char* incoming_msg, int length, char* outgoing_msg);
 int debug_OSCwrite(char* incoming_msg, char* outgoing_msg);
 static void debug_OSC(const char* incoming_msg);
 static void debug_OSCmsg(char* incoming_msg, int in_length);
+void i2c_err_callback(int result);
 
 /* see https://stackoverflow.com/questions/6357031/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-in-c
  * outsz = 3x insz
@@ -58,7 +59,7 @@ void tohex(unsigned char * in, size_t insz, char * out, size_t outsz)
 int debug_OSCwritemsg(char* incoming_msg, int in_length, char* outgoing_msg)
 {
     tosc_message osc; // declare the TinyOSC structure
-    char buffer[MAX_PQT_LENGTH];
+    char buffer[MAX_PQT_SENDLENGTH];
     int out_length = 0;
 
     if (!tosc_parseMessage(&osc, incoming_msg, in_length)) {
@@ -72,7 +73,7 @@ int debug_OSCwritemsg(char* incoming_msg, int in_length, char* outgoing_msg)
                     sprintf(buffer + strlen(buffer), "%g ", tosc_getNextFloat(&osc));
                     break;
                 case 'i':
-                    sprintf(buffer + strlen(buffer), "%i ", tosc_getNextInt32(&osc));
+                    sprintf(buffer + strlen(buffer), "%ld ", tosc_getNextInt32(&osc));
                     break;
                 // returns NULL if the incoming_msg in_length is exceeded
                 case 's':
@@ -93,7 +94,7 @@ int debug_OSCwrite(char* incoming_msg, char* outgoing_msg)
     // returns the number of bytes written to the buffer, negative on error
     // note that tosc_write will clear the entire buffer before writing to it
     int len = tosc_writeMessage(
-                  outgoing_msg, MAX_PQT_LENGTH,
+                  outgoing_msg, MAX_PQT_SENDLENGTH,
                   "/debug", // the address
                   "ss",   // the format; 'f':32-bit float, 's':ascii string, 'i':32-bit integer
                   IF_NAME" ("SOFT_VER"):", incoming_msg);
@@ -103,10 +104,10 @@ int debug_OSCwrite(char* incoming_msg, char* outgoing_msg)
 
 static void debug_OSCmsg(char* incoming_msg, int in_length)
 {
-    char buffer[MAX_PQT_LENGTH];
+    char buffer[MAX_PQT_SENDLENGTH];
     int out_length = 0;
 
-    if (in_length <= MAX_PQT_LENGTH) {
+    if (in_length <= MAX_PQT_SENDLENGTH) {
         out_length = debug_OSCwritemsg(incoming_msg, in_length, buffer);
         send_UDPmsg(buffer, out_length);
     }
@@ -114,13 +115,17 @@ static void debug_OSCmsg(char* incoming_msg, int in_length)
 
 static void debug_OSC(const char* incoming_msg)
 {
-    char buffer[MAX_PQT_LENGTH];
+    char buffer[MAX_PQT_SENDLENGTH];
     int out_length = 0;
 
-    if (strlen(incoming_msg) < MAX_PQT_LENGTH) {
+    if (strlen(incoming_msg) < MAX_PQT_SENDLENGTH) {
         out_length = debug_OSCwrite((char *)incoming_msg, buffer);
         send_UDPmsg(buffer, out_length);
     }
+}
+
+void i2c_err_callback(int result) {
+    led_red = !led_red;
 }
 
 #endif // _MAIN_DEBUG_

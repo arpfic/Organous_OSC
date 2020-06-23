@@ -1,14 +1,14 @@
 #include    "mbed.h"
 #include    "PCA9956A.h"
 
-PCA9956A::PCA9956A( PinName i2c_sda, PinName i2c_scl, char i2c_address )
-    : PCA995xA( i2c_sda, i2c_scl, i2c_address ), n_of_ports( 24 )
+PCA9956A::PCA9956A( PinName i2c_sda, PinName i2c_scl, event_callback_t cb_function, char i2c_address )
+    : PCA995xA( i2c_sda, i2c_scl, cb_function, i2c_address ), n_of_ports( 24 )
 {
     initialize();
 }
 
-PCA9956A::PCA9956A( I2C &i2c_obj, char i2c_address )
-    : PCA995xA( i2c_obj, i2c_address ), n_of_ports( 24 )
+PCA9956A::PCA9956A( I2C &i2c_obj, event_callback_t cb_function, char i2c_address )
+    : PCA995xA( i2c_obj, cb_function, i2c_address ), n_of_ports( 24 )
 {
     initialize();
 }

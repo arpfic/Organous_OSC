@@ -44,6 +44,7 @@ private:
     I2C*    i2c_p;
     I2C     &i2c;
 
+    event_callback_t i2c_cb_function;
     char    i2c_addr;
 
     PCA9956A*   led_drv_p;
@@ -56,7 +57,7 @@ private:
 public:
     CoilDriver(PinName _i2c_sda, PinName _i2c_scl, PinName _pinoe,
                PinName _pindrv_rst, PinName _pindrv_fault, DigitalOut *_driver_table,
-               char _i2c_addr = DEFAULT_I2C_TAG);
+               event_callback_t _i2c_cb_function, char _i2c_addr = DEFAULT_I2C_TAG);
 
     /* This is a stack of multiuser calls to coilOn/coilOff
      */

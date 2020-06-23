@@ -96,8 +96,6 @@ menu_cases tools_cases [] = {
  */
 void menu_main_coil()
 {
-    // Blink for fun
-    led_blue = !led_blue;
     if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i') {
         int port = tosc_getNextInt32(p_osc);
         int intensity = tosc_getNextInt32(p_osc);
@@ -134,8 +132,6 @@ void menu_main_coil()
  * Note     : This is a PUSH/PULL configuration
  */
 void menu_main_motor(){
-    // Blink for fun
-    led_blue = !led_blue;
     if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i'
             && p_osc->format[2] == 'f') {
         int port      = tosc_getNextInt32(p_osc);
@@ -162,8 +158,6 @@ void menu_main_motor(){
  * Note     : This is a PUSH/PULL configuration
  */
 void menu_main_motor_brake(){
-    // Blink for fun
-    led_blue = !led_blue;
     if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i') {
         int port      = tosc_getNextInt32(p_osc);
         int next_port = tosc_getNextInt32(p_osc);
@@ -186,8 +180,6 @@ void menu_main_motor_brake(){
  * Note     : This is a PUSH/PULL configuration
  */
 void menu_main_motor_coast(){
-    // Blink for fun
-    led_blue = !led_blue;
     if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i') {
         int port      = tosc_getNextInt32(p_osc);
         int next_port = tosc_getNextInt32(p_osc);
@@ -211,8 +203,6 @@ void menu_main_motor_coast(){
  */
 void menu_main_tone()
 {
-    // Blink for fun
-    led_blue = !led_blue;
     if (p_osc->format[0] == 'f') {
         float tone = tosc_getNextFloat(p_osc);
         if (tone >0) {
@@ -235,8 +225,6 @@ void menu_main_tone()
  */
 void menu_lowlevel_output()
 {
-    // Blink for fun
-    led_blue = !led_blue;
     if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i') {
         int port  = tosc_getNextInt32(p_osc);
         int state = tosc_getNextInt32(p_osc);
@@ -265,8 +253,6 @@ void menu_lowlevel_output()
  */
 void menu_lowlevel_output_all()
 {
-    // Blink for fun
-    led_blue = !led_blue;
     if (p_osc->format[0] == 'i') {
         int state = tosc_getNextInt32(p_osc);
         if (state >= 0 && state <= 1) {
@@ -294,8 +280,6 @@ void menu_lowlevel_output_all()
  */
 void menu_lowlevel_output_state()
 {
-    // Blink for fun
-    led_blue = !led_blue;
     if (p_osc->format[0] == 'i') {
         int port  = tosc_getNextInt32(p_osc);
         if (port >= 0 && port < 24 ) {
@@ -317,8 +301,6 @@ void menu_lowlevel_output_state()
  */
 void menu_lowlevel_pwm()
 {
-    // Blink for fun
-    led_blue = !led_blue;
     if (p_osc->format[0] == 'i' && p_osc->format[1] == 'f') {
         int port  = tosc_getNextInt32(p_osc);
         float pwm = tosc_getNextFloat(p_osc);
@@ -348,8 +330,6 @@ void menu_lowlevel_pwm()
  */
 void menu_lowlevel_pwm_all()
 {
-    // Blink for fun
-    led_blue = !led_blue;
     if (p_osc->format[0] == 'f') {
         float pwm = tosc_getNextFloat(p_osc);
         if (pwm > 0 && pwm <=1) {
@@ -379,8 +359,6 @@ void menu_lowlevel_pwm_state(){}
  */
 void menu_lowlevel_oe()
 {
-    // Blink for fun
-    led_blue = !led_blue;
     if (p_osc->format[0] == 'f') {
         float cycle = tosc_getNextFloat(p_osc);
         if (cycle > 0 && cycle <=1 ) {
@@ -476,12 +454,12 @@ void menu_tools_softreset()
     delete driver_A;
     // Create new objects
     driver_A = new CoilDriver(PCA_A_SDA, PCA_A_SCL, PCA_A_OE, DRV_A_RST,
-                              DRV_A_FAULT, driver_a_table, A_SIDE_I2C_TAG);
+                              DRV_A_FAULT, driver_a_table, i2c_err_callback, A_SIDE_I2C_TAG);
 #if B_SIDE == 1
     driver_B->forceoff(ALLPORTS);
     delete driver_B;
     driver_B = new CoilDriver(PCA_B_SDA, PCA_B_SCL, PCA_B_OE, DRV_B_RST,
-                              DRV_B_FAULT, driver_b_table, B_SIDE_I2C_TAG);
+                              DRV_B_FAULT, driver_b_table, i2c_err_callback, B_SIDE_I2C_TAG);
 #endif
     led_green = led_blue = led_red = 0;
 }
@@ -491,8 +469,6 @@ void menu_tools_softreset()
  */
 void menu_tools_forceoff_all()
 {
-    // Blink for fun
-    led_blue = !led_blue;
     driver_A->forceoff(ALLPORTS);
     driver_A->oeCycle(0.0f);
     driver_A->oePeriod(1.0f);
@@ -509,15 +485,13 @@ void menu_tools_forceoff_all()
  */
 void menu_tools_count()
 {
-    // Blink for fun
-    led_blue = !led_blue;
     if (p_osc->format[0] == 'i') {
         int i = tosc_getNextInt32(p_osc);
 		debug_smallcount = debug_smallcount + i;
         debug_count = debug_count + i;
     }
 	if (debug_smallcount > 99) {
-		char buffer[MAX_PQT_LENGTH];
+		char buffer[MAX_PQT_SENDLENGTH];
 		sprintf(buffer, "%ld", debug_count);
 		debug_OSC(buffer);
 		debug_smallcount = 0;

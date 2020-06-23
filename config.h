@@ -43,12 +43,16 @@
 #define COIL_SUSTAIN                            (float)0.6
 
 /* -----------------------------------------------------------------------------
- * OSC STUFF :
- * OSC_CLIENT_PORT  : the port of the client (e.g. puredata)
- * MAX_PQT_LENGTH   : MAXIMUM UDP packet length
+ * OSC and BUFFER STUFF :
+ * OSC_CLIENT_PORT      : the port of the client (e.g. puredata)
+ * MAX_PQT_LENGTH       : MAXIMUM UDP packet length
+ * MAX_PQT_SENDLENGTH   : MAXIMUM UDP send packet length
+ * CIRCUL_BUF_SIZE      : INTERNAL RX buffer size
  */
-#define OSC_CLIENT_PORT                         12345
-#define MAX_PQT_LENGTH                          512
+#define OSC_CLIENT_PORT                         9000
+#define MAX_PQT_LENGTH                          8192
+#define MAX_PQT_SENDLENGTH                      512
+#define CIRCUL_BUF_SIZE                         32768
 
 /* -----------------------------------------------------------------------------
  * I2C address of PCA9956B

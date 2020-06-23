@@ -29,6 +29,7 @@
 //#include "TCPSocket.h"
 #include "FastPWM.h"
 #include "SoftPWM.h"
+#include "platform/CircularBuffer.h"
 #include "main_driver_hal.h"
 #include "PCA9956A.h"
 #include "tOSC.h"
@@ -95,7 +96,7 @@ SocketAddress       *source_addr;
  * packets
  */
 EventQueue queue(256 * EVENTS_EVENT_SIZE);
-//Thread thrd;
+Thread thrd;
 
 // SameThread but for (hopefully not so often) DRV8844 errors
 Thread *thread_errA;
@@ -106,6 +107,7 @@ tosc_message* p_osc;
 // Packet size limitation = MAX_PQT_LENGTH
 char    mainpacket_buffer[MAX_PQT_LENGTH];
 int     mainpacket_length = 0;
+//CircularBuffer<char, CIRCUL_BUF_SIZE> mainpacket_cirbuffer;
 
 // Pointers to DRV8844 Driver class
 CoilDriver* driver_A;

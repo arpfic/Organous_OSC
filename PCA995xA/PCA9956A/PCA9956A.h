@@ -216,14 +216,14 @@ public:
      * @param i2c_sda       I2C-bus SCL pin
      * @param i2c_address   I2C-bus address (default: 0xC0)
      */
-    PCA9956A( PinName i2c_sda, PinName i2c_scl, char i2c_address = PCA995xA::DEFAULT_I2C_ADDR );
+    PCA9956A( PinName i2c_sda, PinName i2c_scl, event_callback_t cb_function, char i2c_address = PCA995xA::DEFAULT_I2C_ADDR );
 
     /** Create a PCA9956A instance connected to specified I2C pins with specified address
      *
      * @param i2c_obj       I2C object (instance)
      * @param i2c_address   I2C-bus address (default: 0xC0)
      */
-    PCA9956A( I2C &i2c_obj, char i2c_address = PCA995xA::DEFAULT_I2C_ADDR );
+    PCA9956A( I2C &i2c_obj, event_callback_t cb_function, char i2c_address = PCA995xA::DEFAULT_I2C_ADDR );
 
     /** Destractor
      *
@@ -301,7 +301,7 @@ public:
      * @param reg_addr  Register address
      * @return          Read value from register
      */    
-    char            read( char reg_addr );
+//    char            read( char reg_addr );
 
     /** Register write (multiple bytes) : Low level access to device register
      *
@@ -309,7 +309,7 @@ public:
      * @param data      Pointer to an array. The values are stored in this array.
      * @param length    Length of data
      */    
-    void            read( char reg_addr, char *data, int length );
+//    void            read( char reg_addr, char *data, int length );
 #endif
 
 private:

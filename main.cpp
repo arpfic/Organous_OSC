@@ -59,15 +59,35 @@ void handler_Packetevent()
     tosc_message osc;
     p_osc = &osc;
 
-    if (!tosc_parseMessage(&osc, mainpacket_buffer, mainpacket_length)) {
-        for (menu_cases* p_case = cases;
-                p_case != cases + sizeof(cases) / sizeof(cases[0]);
-                p_case++) {
-            if (strncmp(tosc_getAddress(&osc), p_case->menu_string,
-                        strlen(p_case->menu_string)) == 0) {
-                (*p_case->menu_func)();
+    if (tosc_isBundle(mainpacket_buffer)) {
+        // Blink for fun
+        led_blue = !led_blue;
+
+        tosc_bundle bundle;
+        tosc_parseBundle(&bundle, mainpacket_buffer, mainpacket_length);
+
+        while (tosc_getNextMessage(&bundle, &osc)) {
+            for (menu_cases* p_case = cases;
+                    p_case != cases + sizeof(cases) / sizeof(cases[0]);
+                    p_case++) {
+                if (strncmp(tosc_getAddress(&osc), p_case->menu_string,
+                            strlen(p_case->menu_string)) == 0) {
+                    (*p_case->menu_func)();
+                }
             }
         }
+    } else if (!tosc_parseMessage(&osc, mainpacket_buffer, mainpacket_length)) {
+        // Blink for fun
+        led_blue = !led_blue;
+
+		for (menu_cases* p_case = cases;
+                p_case != cases + sizeof(cases) / sizeof(cases[0]);
+                p_case++) {
+                if (strncmp(tosc_getAddress(&osc), p_case->menu_string,
+                            strlen(p_case->menu_string)) == 0) {
+                    (*p_case->menu_func)();
+                }
+		}
     } else {
         led_red = !led_red;
     }
@@ -77,7 +97,7 @@ void handler_Packetevent()
  */
 void init_msgON()
 {
-    char buffer[MAX_PQT_LENGTH];
+    char buffer[MAX_PQT_SENDLENGTH];
 
     sprintf(buffer, "UP ! My IP address is :");
     sprintf(buffer + strlen(buffer), " %s", const_cast<char*>(eth->get_ip_address()));
@@ -158,7 +178,7 @@ int main()
 
     // Init homemade CoilDriver class
     driver_A = new CoilDriver(PCA_A_SDA, PCA_A_SCL, PCA_A_OE, DRV_A_RST,
-                              DRV_A_FAULT, driver_a_table, A_SIDE_I2C_TAG);
+                              DRV_A_FAULT, driver_a_table, i2c_err_callback, A_SIDE_I2C_TAG);
     // Set-up driver_A error feedbacks with PinDetect
     driver_A->drv_fault.attach_asserted_held(queue.event(driver_A_error_handler));
     driver_A->drv_fault.setSamplesTillHeld(20);
@@ -166,7 +186,7 @@ int main()
     driver_A->drv_fault.setSampleFrequency();
 #if B_SIDE == 1
     driver_B = new CoilDriver(PCA_B_SDA, PCA_B_SCL, PCA_B_OE, DRV_B_RST,
-                              DRV_B_FAULT, driver_b_table, B_SIDE_I2C_TAG);
+                              DRV_B_FAULT, driver_b_table, i2c_err_callback, B_SIDE_I2C_TAG);
     driver_B->drv_fault.attach_asserted_held(queue.event(driver_B_error_handler));
     driver_B->drv_fault.setSamplesTillHeld(20);
     driver_B->drv_fault.setAssertValue(0);
@@ -210,9 +230,13 @@ int main()
         sinusoid_data[i]=((1.0 + sin((float(i)/128.0*6.28318530717959)))/2.0);
     }
 
+    // Dispatch forever the queue, directly and not in a thread (bugs appends) NO !
+    // Dispatch forever the queue in a thread :
+    //thrd.start(callback(&queue, &EventQueue::dispatch_forever));
+
     while (true) {
-        // Dispatch forever the queue, directly and not in a thread (bugs appends)
-    	queue.dispatch_forever();
+//        led_red = !led_red;
+		queue.dispatch_forever();
         // Not even sleep !
     }
 }

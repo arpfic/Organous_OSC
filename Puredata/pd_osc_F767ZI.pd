@@ -1,4 +1,4 @@
-#N canvas 538 59 828 709 10;
+#N canvas 683 69 683 709 10;
 #X obj 6 416 notein;
 #X floatatom 6 438 5 0 0 0 - - -;
 #X floatatom 52 437 5 0 0 0 - - -;
@@ -12,7 +12,7 @@
 #X floatatom 296 438 0 0 0 0 - - -;
 #X floatatom 7 112 5 0 0 0 - - -;
 #X msg 44 21 172.24.1.143;
-#N canvas 0 59 683 709 osc_interface 0;
+#N canvas 0 69 683 709 osc_interface 1;
 #X obj 368 105 cnv 15 100 60 empty empty empty 20 12 0 10 -262144 -1
 0;
 #X obj 17 18 inlet connect;
@@ -29,11 +29,8 @@
 #X obj 472 321 print main;
 #X obj 472 299 route main debug ack;
 #X obj 550 321 print ack;
-#X obj 472 209 netreceive -u -b 12345;
-#X msg 335 440 listen 12345;
 #X msg 335 500 listen 0;
 #X msg 21 395 connect;
-#X msg 78 395 12345;
 #X msg 21 437 \$1 \$2 \$3;
 #X obj 21 416 pack s s f;
 #X obj 104 105 bng 15 250 50 0 empty empty -CONNECT_to: 17 7 0 10 -262144
@@ -54,7 +51,18 @@ IP que la carte lui communique au démarrage pour un fonctionnement
 assuré de part et d'autre. À gauche du canvas \, les bidouilles permettent
 d'organiser l'ordre des commandes envoyées pour ouvrir et fermer les
 connections.;
-#X connect 1 0 28 0;
+#X msg 589 427 [;
+#X msg 543 428 ];
+#X text 437 429 close bundle;
+#X msg 423 542 /test 5 6 7;
+#X msg 472 598 /test 1 2 3 4;
+#X obj 543 404 t b b b b;
+#X obj 462 385 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X msg 78 395 9000;
+#X obj 472 209 netreceive -u -b 9000;
+#X msg 335 440 listen 9000;
+#X connect 1 0 25 0;
 #X connect 2 0 7 0;
 #X connect 4 0 5 0;
 #X connect 5 0 6 0;
@@ -66,29 +74,34 @@ connections.;
 #X connect 13 0 12 0;
 #X connect 13 1 11 0;
 #X connect 13 2 14 0;
-#X connect 15 0 9 0;
-#X connect 16 0 15 0;
-#X connect 17 0 15 0;
-#X connect 18 0 21 0;
-#X connect 19 0 21 2;
-#X connect 20 0 6 0;
+#X connect 15 0 38 0;
+#X connect 16 0 18 0;
+#X connect 17 0 6 0;
+#X connect 18 0 17 0;
+#X connect 19 0 21 0;
+#X connect 20 0 24 0;
 #X connect 21 0 20 0;
-#X connect 22 0 24 0;
-#X connect 23 0 27 0;
-#X connect 24 0 23 0;
-#X connect 25 0 7 0;
-#X connect 26 0 24 0;
-#X connect 27 0 16 0;
-#X connect 27 0 25 0;
-#X connect 27 0 7 0;
-#X connect 27 1 18 0;
-#X connect 27 2 21 1;
-#X connect 27 3 8 0;
-#X connect 27 3 17 0;
-#X connect 27 3 19 0;
-#X connect 28 0 29 0;
-#X connect 29 0 22 0;
-#X connect 29 1 24 1;
+#X connect 22 0 7 0;
+#X connect 23 0 21 0;
+#X connect 24 0 39 0;
+#X connect 24 0 22 0;
+#X connect 24 0 7 0;
+#X connect 24 1 16 0;
+#X connect 24 2 18 1;
+#X connect 24 3 8 0;
+#X connect 24 3 15 0;
+#X connect 24 3 37 0;
+#X connect 25 0 26 0;
+#X connect 26 0 19 0;
+#X connect 26 1 21 1;
+#X connect 35 0 31 0;
+#X connect 35 1 33 0;
+#X connect 35 2 34 0;
+#X connect 35 3 30 0;
+#X connect 36 0 35 0;
+#X connect 37 0 18 2;
+#X connect 38 0 9 0;
+#X connect 39 0 38 0;
 #X coords 0 -1 1 1 263 62 2 100 100;
 #X restore 7 45 pd osc_interface;
 #X obj 455 112 s oscinput;
@@ -161,7 +174,7 @@ ce que reçoit et envoie la carte., f 61;
 #X obj 543 614 outlet;
 #X obj 660 375 t a a a;
 #X obj 242 204 hsl 64 15 0 1 0 0 empty empty ratio -2 -8 0 10 -261234
--1 -1 2500 0;
+-1 -1 0 0;
 #X floatatom 239 222 5 0 0 0 - - -;
 #X msg 660 419 format f;
 #X obj 660 353 pack 0;
@@ -192,7 +205,7 @@ ce que reçoit et envoie la carte., f 61;
 #X obj 149 134 tgl 15 0 empty empty 0/1 0 -7 0 10 -261234 -1 -1 0 1
 ;
 #X text 103 101 OUTPUT;
-#X obj 199 134 tgl 15 0 empty empty 0/1 0 -7 0 10 -261234 -1 -1 1 1
+#X obj 199 134 tgl 15 0 empty empty 0/1 0 -7 0 10 -261234 -1 -1 0 1
 ;
 #X text 197 101 OUTPUT_ALL;
 #X obj 287 136 nbx 3 14 0 47 0 0 empty empty sortie 0 -8 0 10 -4034

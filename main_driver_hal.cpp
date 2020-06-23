@@ -21,10 +21,11 @@
 // Default constructor
 CoilDriver::CoilDriver(PinName _i2c_sda, PinName _i2c_scl, PinName _pinoe,
                        PinName _pindrv_rst, PinName _pindrv_fault, DigitalOut *_driver_table,
-                       char _i2c_addr)
+                       event_callback_t _i2c_cb_function, char _i2c_addr)
     :   i2c_p( new I2C( _i2c_sda, _i2c_scl ) ), i2c( *i2c_p ),
+        i2c_cb_function(_i2c_cb_function),
         i2c_addr(_i2c_addr),
-        led_drv_p(new PCA9956A(i2c, i2c_addr)), led_drv(*led_drv_p),
+        led_drv_p(new PCA9956A(i2c, i2c_cb_function, i2c_addr)), led_drv(*led_drv_p),
         oe(_pinoe),
         drv_rst(_pindrv_rst),
         drv_fault(_pindrv_fault),
