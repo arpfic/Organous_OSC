@@ -30,8 +30,8 @@ static void handle_socket()
 // Read data from the socket
 static void receive_message()
 {
-    // Zeroing the buffer
-    memset(mainpacket_buffer, 0, sizeof(mainpacket_buffer));
+    // Zeroing the buffer. Bof
+    //memset(mainpacket_buffer, 0, sizeof(mainpacket_buffer));
     // Read all messages
     bool something_in_socket = true;
     while (something_in_socket) {
@@ -203,8 +203,8 @@ int main()
     thrd.start(callback(&queue, &EventQueue::dispatch_forever));
 
     while (true) {
-//      led_red = !led_red;
-//	queue.dispatch_forever();
+        led_blue = !led_blue;
+        //	queue.dispatch_forever();
         // Not even sleep !
 
         /* Here we realy decode OSC messages -- and we parse addr to menu subfunctions

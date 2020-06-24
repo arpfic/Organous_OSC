@@ -224,7 +224,7 @@
 #X obj 905 110 / 16383;
 #X obj 905 133 * 127;
 #X floatatom 906 162 5 0 0 0 - - -;
-#N canvas -145 495 1024 486 osc_interface 1;
+#N canvas 0 341 1366 709 osc_interface 1;
 #X obj 442 105 cnv 15 100 60 empty empty empty 20 12 0 10 -262144 -1
 0;
 #X obj 17 18 inlet connect;
