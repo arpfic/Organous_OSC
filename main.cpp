@@ -68,8 +68,7 @@ void init_msgON()
     char buffer[MAX_PQT_SENDLENGTH];
 
     sprintf(buffer, "UP ! My IP address is :");
-    sprintf(buffer + strlen(buffer), " %s", const_cast<char*>(source_addr->get_ip_address()));
-    sprintf(buffer + strlen(buffer), " PLEASE CONNECT !");
+    sprintf(buffer + strlen(buffer), " %s", const_cast<char*>(my_addr->get_ip_address()));
 
     debug_OSC(buffer);
 
@@ -175,8 +174,16 @@ int main()
     //my_socket = new TCPSocket(eth);
     my_socket->set_blocking(false);
     my_socket->open(eth);
-    // Set-up SocketAddress source_addr
+
+    tcp_socket = new TCPSocket;
+    tcp_socket->set_blocking(false);
+    tcp_socket->open(eth);
+
+    // Set-up SocketAddresses
+    my_addr = new SocketAddress;
     source_addr = new SocketAddress;
+    tcp_source_addr = new SocketAddress;
+
     // TCP/IP stuff. Bind UDPSocket to the OSC_CLIENT_PORT.
     while(my_socket->bind(OSC_CLIENT_PORT) != 0);
 
@@ -190,9 +197,29 @@ int main()
      * important to connect each others with more intimity, because :
      * more intimity == more efficiency
      */
-    eth->get_ip_address(source_addr);
-    init_msgON();
+    eth->get_ip_address(my_addr);
 
+    init_msgON();
+/*
+    eth->get_ip_address(tcp_source_addr);
+    tcp_source_addr->set_port(80);
+    tcp_socket->connect(*tcp_source_addr);
+
+    // Send a simple http request
+    char buffer[MAX_PQT_SENDLENGTH];
+    char sbuffer[] = "GET / HTTP/1.1\r\nHost: ifconfig.io\r\n\r\n";
+    int scount = tcp_socket->send(sbuffer, sizeof sbuffer);
+    sprintf(buffer, "sent %d [%.*s]\n", scount, strstr(sbuffer, "\r\n") - sbuffer, sbuffer);
+    debug_OSC(buffer);
+    // Recieve a simple http response and print out the response line
+    char rbuffer[64];
+    int rcount = tcp_socket->recv(rbuffer, sizeof rbuffer);
+    //sprintf(buffer, "recv %d", rcount);
+    sprintf(buffer, "recv %d [%.*s]\n", rcount, strstr(rbuffer, "\r\n") - rbuffer, rbuffer);
+    debug_OSC(buffer);
+    // Close the socket to return its memory and bring down the network interface
+    tcp_socket->close();
+*/
     // (not so) BROKEN tone function : precompute 128 sample points on one sine wave cycle
     // used for continuous sine wave output later
     for(int i=0; i<128; i++) {

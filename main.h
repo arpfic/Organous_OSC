@@ -26,7 +26,7 @@
 #include "config.h"
 #include "PinDetect.h"
 #include "UDPSocket.h"
-//#include "TCPSocket.h"
+#include "TCPSocket.h"
 #include "FastPWM.h"
 #include "SoftPWM.h"
 #include "platform/CircularBuffer.h"
@@ -91,8 +91,10 @@ InterruptIn button(USER_BUTTON);
 // Ethernet interface pointers
 EthernetInterface   *eth;
 UDPSocket           *my_socket;
-//TCPSocket *my_socket;
+TCPSocket           *tcp_socket;
+SocketAddress       *my_addr;
 SocketAddress       *source_addr;
+SocketAddress       *tcp_source_addr;
 /* NET I/O queue and thread : it's important to be always available to incoming
  * packets
  */
