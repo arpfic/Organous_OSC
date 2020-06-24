@@ -201,6 +201,7 @@ int main()
     // Dispatch forever the queue, directly and not in a thread (bugs appends) NO !
     // Dispatch forever the queue in a thread :
     thrd.start(callback(&queue, &EventQueue::dispatch_forever));
+    thrd.set_priority(osPriorityHigh);
 
     while (true) {
         led_blue = !led_blue;
