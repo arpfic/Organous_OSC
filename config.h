@@ -53,7 +53,7 @@
 #define OSC_CLIENT_PORT                         9000
 #define MAX_PQT_LENGTH                          4096
 #define MAX_PQT_SENDLENGTH                      512
-#define PACKETS_TABLE_SIZE                      64
+#define PACKETS_TABLE_SIZE                      32
 #define QUEUE_EVENTS                            1024
 /* -----------------------------------------------------------------------------
  * I2C address of PCA9956B

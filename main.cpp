@@ -198,10 +198,10 @@ int main()
         sinusoid_data[i]=((1.0 + sin((float(i)/128.0*6.28318530717959)))/2.0);
     }
 
-    // Dispatch forever the queue, directly and not in a thread (bugs appends) NO !
     // Dispatch forever the queue in a thread :
     thrd.start(callback(&queue, &EventQueue::dispatch_forever));
-    thrd.set_priority(osPriorityHigh);
+    // Have to test the priority
+    thrd.set_priority(osPriorityRealtime);
 
     while (true) {
         led_blue = !led_blue;
@@ -211,6 +211,10 @@ int main()
         /* Here we realy decode OSC messages -- and we parse addr to menu subfunctions
         */
         while (!socketpacket_buf.empty()) {
+            // Test if we are full
+            if (socketpacket_buf.full())
+                debug_OSC("Circularbuffer full : please slow down the flow !");
+
             socketpacket* packet;
             socketpacket_buf.pop(packet);
 
