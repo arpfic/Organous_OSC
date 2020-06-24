@@ -28,7 +28,7 @@ void SoftPWM::start()
 {
     if (width != 0.0) {
         pulse = 1;
-       _ticker.attach(this, &SoftPWM::TickerInterrapt, interval);
+       _ticker.attach(callback(this, &SoftPWM::TickerInterrapt), interval);
     } else {
         pulse = 0;
     }
@@ -77,7 +77,7 @@ void SoftPWM::pulsewidth_us(int _width)
 void SoftPWM::TickerInterrapt()
 { 
     if (width <= 0)return;
-    _timeout.attach(this, &SoftPWM::end, width);
+    _timeout.attach(callback(this, &SoftPWM::end), width);
     pulse = 1; 
 }
 

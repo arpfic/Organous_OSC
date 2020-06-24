@@ -68,7 +68,7 @@ void init_msgON()
     char buffer[MAX_PQT_SENDLENGTH];
 
     sprintf(buffer, "UP ! My IP address is :");
-    sprintf(buffer + strlen(buffer), " %s", const_cast<char*>(eth->get_ip_address()));
+    sprintf(buffer + strlen(buffer), " %s", const_cast<char*>(source_addr->get_ip_address()));
     sprintf(buffer + strlen(buffer), " PLEASE CONNECT !");
 
     debug_OSC(buffer);
@@ -171,7 +171,7 @@ int main()
     // Attach to status callback
     eth->attach(&eth_status_callback);
     // Set-up UDPSocket my_socket because OSC IS in UDP. TODO : try and benchmark TCP ?
-    my_socket = new UDPSocket(eth);
+    my_socket = new UDPSocket;
     //my_socket = new TCPSocket(eth);
     my_socket->set_blocking(false);
     my_socket->open(eth);
@@ -190,6 +190,7 @@ int main()
      * important to connect each others with more intimity, because :
      * more intimity == more efficiency
      */
+    eth->get_ip_address(source_addr);
     init_msgON();
 
     // (not so) BROKEN tone function : precompute 128 sample points on one sine wave cycle
