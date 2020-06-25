@@ -23,6 +23,7 @@
 #include "mbed.h"
 #include "nsapi_types.h"
 #include "string.h"
+//#include "stats_report.h"
 #include "config.h"
 #include "PinDetect.h"
 #include "UDPSocket.h"
@@ -35,12 +36,12 @@
 #include "PCA9956A.h"
 #include "tOSC.h"
 
-// UDPSocket my_socket callback
-static void handle_socket();
-// Same purpose, but called by handle_socket() through a queue
-static void receive_message();
-// Here we decode OSC message
-void handler_Packetevent();
+// UDPSocket/TCPSocket Callbacks
+static void handle_udp_socket();
+static void handle_tcp_socket();
+// Same purpose, but called by handle_udp_socket() through a queue
+static void receive_udp_message();
+static void receive_tcp_message();
 
 /* When the NUCLEO_F767ZI is started and connected, this function send a welcome
  * packet to broadcast (255.255.255.255) and ask the main user to connect to it
@@ -88,18 +89,24 @@ DigitalOut  led_blue(LED_BLUE);
 DigitalOut  led_red(LED_RED);
 InterruptIn button(USER_BUTTON);
 
+// DEBUG Stats
+#define SLEEP_TIME                  100 // (msec)
+#define PRINT_AFTER_N_LOOPS         100
+// SystemReport sys_state( SLEEP_TIME * PRINT_AFTER_N_LOOPS /* Loop delay time in ms */);
+
 // Ethernet interface pointers
 EthernetInterface   *eth;
-UDPSocket           *my_socket;
-TCPSocket           *tcp_socket;
-SocketAddress       *my_addr;
-SocketAddress       *source_addr;
-SocketAddress       *tcp_source_addr;
+UDPSocket           *udp_socket;
+SocketAddress       *ip;
+SocketAddress       *client_addr;
+
 /* NET I/O queue and thread : it's important to be always available to incoming
  * packets
  */
-EventQueue queue(QUEUE_EVENTS * EVENTS_EVENT_SIZE);
-Thread thrd;
+EventQueue queue_msg(QUEUE_MSG_EVENTS * EVENTS_EVENT_SIZE);
+EventQueue queue_io(QUEUE_IO_EVENTS * EVENTS_EVENT_SIZE);
+Thread thrd_msg;
+Thread thrd_io;
 
 // SameThread but for (hopefully not so often) DRV8844 errors
 Thread *thread_errA;
@@ -107,6 +114,8 @@ Thread *thread_errB;
 
 // Pointer to OSC packet/message
 tosc_message* p_osc;
+
+// Small buffer and Circular buffer :
 // Packet size limitation = MAX_PQT_LENGTH
 char    mainpacket_buffer[MAX_PQT_LENGTH];
 int     mainpacket_length = 0;

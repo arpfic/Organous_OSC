@@ -54,7 +54,9 @@
 #define MAX_PQT_LENGTH                          4096
 #define MAX_PQT_SENDLENGTH                      512
 #define PACKETS_TABLE_SIZE                      32
-#define QUEUE_EVENTS                            1024
+#define QUEUE_MSG_EVENTS                        32
+#define QUEUE_IO_EVENTS                         1024
+
 /* -----------------------------------------------------------------------------
  * I2C address of PCA9956B
  * (Please refer to https://www.nxp.com/docs/en/data-sheet/PCA9956B.pdf)

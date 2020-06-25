@@ -20,23 +20,27 @@
 #include "main_debug.h"
 #include "menu.h"
 
-// Handler
-static void handle_socket()
+// Handlers
+static void handle_udp_socket()
 {
-    queue.call(receive_message);
-//    receive_message();
+    queue_io.call(receive_udp_message);
+}
+
+static void handle_tcp_socket()
+{
+    return;
 }
 
 // Read data from the socket
-static void receive_message()
+static void receive_udp_message()
 {
     // Zeroing the buffer. Bof
-    //memset(mainpacket_buffer, 0, sizeof(mainpacket_buffer));
+    // memset(mainpacket_buffer, 0, sizeof(mainpacket_buffer));
     // Read all messages
     bool something_in_socket = true;
     while (something_in_socket) {
         // Copy to the temporary buffer
-        mainpacket_length = my_socket->recvfrom(source_addr, mainpacket_buffer, sizeof(mainpacket_buffer) - 1);
+        mainpacket_length = udp_socket->recvfrom(client_addr, mainpacket_buffer, sizeof(mainpacket_buffer) - 1);
         if (mainpacket_length > 0) {
             // Allocate a new packet in the buffer table :
             socketpacket* new_packet = create_buffer(mainpacket_length);
@@ -61,6 +65,12 @@ static void receive_message()
     }
 }
 
+// Read data from the socket
+static void receive_tcp_message()
+{
+    return ;
+}
+
 /* Init NUCLEO_F767ZI message. See main.h
  */
 void init_msgON()
@@ -68,7 +78,8 @@ void init_msgON()
     char buffer[MAX_PQT_SENDLENGTH];
 
     sprintf(buffer, "UP ! My IP address is :");
-    sprintf(buffer + strlen(buffer), " %s", const_cast<char*>(my_addr->get_ip_address()));
+    sprintf(buffer + strlen(buffer), " %s", const_cast<char*>(ip->get_ip_address()));
+    sprintf(buffer + strlen(buffer), " Please connect");
 
     debug_OSC(buffer);
 
@@ -80,9 +91,9 @@ void init_msgON()
  */
 static void send_UDPmsg(char* incoming_msg, int in_length)
 {
-    source_addr->set_ip_address(master_address);
-    source_addr->set_port(OSC_CLIENT_PORT);
-    my_socket->sendto(*(source_addr), incoming_msg, in_length);
+    client_addr->set_ip_address(master_address);
+    client_addr->set_port(OSC_CLIENT_PORT);
+    udp_socket->sendto(*(client_addr), incoming_msg, in_length);
 }
 
 /* Button basic functions : we just resend init_msgON() when pressed
@@ -90,7 +101,7 @@ static void send_UDPmsg(char* incoming_msg, int in_length)
 void button_pressed()
 {
     led_red = 1;
-    queue.call(init_msgON);
+    queue_msg.call(init_msgON);
 }
 
 void button_released()
@@ -147,14 +158,14 @@ int main()
     driver_A = new CoilDriver(PCA_A_SDA, PCA_A_SCL, PCA_A_OE, DRV_A_RST,
                               DRV_A_FAULT, driver_a_table, i2c_err_callback, A_SIDE_I2C_TAG);
     // Set-up driver_A error feedbacks with PinDetect
-    driver_A->drv_fault.attach_asserted_held(queue.event(driver_A_error_handler));
+    driver_A->drv_fault.attach_asserted_held(queue_msg.event(driver_A_error_handler));
     driver_A->drv_fault.setSamplesTillHeld(20);
     driver_A->drv_fault.setAssertValue(0);
     driver_A->drv_fault.setSampleFrequency();
 #if B_SIDE == 1
     driver_B = new CoilDriver(PCA_B_SDA, PCA_B_SCL, PCA_B_OE, DRV_B_RST,
                               DRV_B_FAULT, driver_b_table, i2c_err_callback, B_SIDE_I2C_TAG);
-    driver_B->drv_fault.attach_asserted_held(queue.event(driver_B_error_handler));
+    driver_B->drv_fault.attach_asserted_held(queue_msg.event(driver_B_error_handler));
     driver_B->drv_fault.setSamplesTillHeld(20);
     driver_B->drv_fault.setAssertValue(0);
     driver_B->drv_fault.setSampleFrequency();
@@ -166,60 +177,40 @@ int main()
 
     // Set-up EthernetInterface in DHCP mode
     eth = new EthernetInterface;
-    nsapi_error_t status = eth->connect();
+    nsapi_error_t status;
+    status = eth->connect();
+    if (status != NSAPI_ERROR_OK) {
+        led_red = 1;
+    }
     // Attach to status callback
     eth->attach(&eth_status_callback);
-    // Set-up UDPSocket my_socket because OSC IS in UDP. TODO : try and benchmark TCP ?
-    my_socket = new UDPSocket;
-    //my_socket = new TCPSocket(eth);
-    my_socket->set_blocking(false);
-    my_socket->open(eth);
 
-    tcp_socket = new TCPSocket;
-    tcp_socket->set_blocking(false);
-    tcp_socket->open(eth);
-
-    // Set-up SocketAddresses
-    my_addr = new SocketAddress;
-    source_addr = new SocketAddress;
-    tcp_source_addr = new SocketAddress;
-
-    // TCP/IP stuff. Bind UDPSocket to the OSC_CLIENT_PORT.
-    while(my_socket->bind(OSC_CLIENT_PORT) != 0);
+    // Set-up UDPSocket udp_socket because OSC IS in UDP.
+    udp_socket = new UDPSocket;
+    udp_socket->set_blocking(false);
+    status = udp_socket->open(eth);
+    if (status != NSAPI_ERROR_OK) {
+        led_red = 1;
+    }
+    // Bind UDPSocket to the OSC_CLIENT_PORT.
+    while(udp_socket->bind(OSC_CLIENT_PORT) != 0);
 
     // Callback ANY packet to handle_socket() -- here is the main magic function.
-    my_socket->sigio(callback(handle_socket));
-    // and... Dispatch forever the queue !
-    //thrd.start(callback(&queue, &EventQueue::dispatch_forever));
+    udp_socket->sigio(callback(handle_udp_socket));
+
+    // Set-up SocketAddresses
+    ip = new SocketAddress;
+    client_addr = new SocketAddress;
 
     /* At this step we are "On the Air", so we can dend up a welcome message to
      * broadcast. We can communicate in both sides with BROADCAST address, but it's
      * important to connect each others with more intimity, because :
      * more intimity == more efficiency
      */
-    eth->get_ip_address(my_addr);
+    eth->get_ip_address(ip);
 
     init_msgON();
-/*
-    eth->get_ip_address(tcp_source_addr);
-    tcp_source_addr->set_port(80);
-    tcp_socket->connect(*tcp_source_addr);
 
-    // Send a simple http request
-    char buffer[MAX_PQT_SENDLENGTH];
-    char sbuffer[] = "GET / HTTP/1.1\r\nHost: ifconfig.io\r\n\r\n";
-    int scount = tcp_socket->send(sbuffer, sizeof sbuffer);
-    sprintf(buffer, "sent %d [%.*s]\n", scount, strstr(sbuffer, "\r\n") - sbuffer, sbuffer);
-    debug_OSC(buffer);
-    // Recieve a simple http response and print out the response line
-    char rbuffer[64];
-    int rcount = tcp_socket->recv(rbuffer, sizeof rbuffer);
-    //sprintf(buffer, "recv %d", rcount);
-    sprintf(buffer, "recv %d [%.*s]\n", rcount, strstr(rbuffer, "\r\n") - rbuffer, rbuffer);
-    debug_OSC(buffer);
-    // Close the socket to return its memory and bring down the network interface
-    tcp_socket->close();
-*/
     // (not so) BROKEN tone function : precompute 128 sample points on one sine wave cycle
     // used for continuous sine wave output later
     for(int i=0; i<128; i++) {
@@ -227,12 +218,15 @@ int main()
     }
 
     // Dispatch forever the queue in a thread :
-    thrd.start(callback(&queue, &EventQueue::dispatch_forever));
-    // Have to test the priority
-    thrd.set_priority(osPriorityRealtime);
+    thrd_io.start(callback(&queue_io, &EventQueue::dispatch_forever));
+    thrd_msg.start(callback(&queue_msg, &EventQueue::dispatch_forever));
+    // Later, we have to find the best priority
+    thrd_io.set_priority(osPriorityRealtime);
 
-    while (true) {
-        led_blue = !led_blue;
+    // DEBUG
+    // sys_state.report_state();
+
+    while(true) {
         //	queue.dispatch_forever();
         // Not even sleep !
 

@@ -385,11 +385,12 @@ void menu_lowlevel_oe()
 void menu_tools_connect()
 {
     // Copy IP from incoming packet
-    strncpy(master_address, const_cast<char*>(source_addr->get_ip_address()), 16 * sizeof(char));
+    strncpy(master_address, const_cast<char*>(client_addr->get_ip_address()), 16 * sizeof(char));
 
     // RE-assign socket with the new address
-    delete source_addr;
-    source_addr = new SocketAddress;
+    // See if it's necessary ?
+    delete client_addr;
+    client_addr = new SocketAddress;
 
     debug_OSC("CONNECTION OK");
     if (debug_on)
@@ -430,8 +431,8 @@ void menu_tools_hardreset()
     delete driver_B;
 #endif
     delete eth;
-    delete my_socket;
-    delete source_addr;
+    delete udp_socket;
+    delete client_addr;
     delete master_address;
     // Just reset the main board
     NVIC_SystemReset();

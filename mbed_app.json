@@ -1,7 +1,8 @@
 {
     "target_overrides": {
         "*": {
-            "platform.callback-nontrivial": true
+            "platform.callback-nontrivial": true,
+            "platform.all-stats-enabled": true
         }
     }
 }

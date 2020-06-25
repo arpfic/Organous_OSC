@@ -1,9 +1,9 @@
-#N canvas 1366 32 1680 1018 10;
+#N canvas 435 142 1440 741 10;
 #X floatatom 51 473 5 0 0 0 - - -;
 #X floatatom 67 495 5 0 0 0 - - -;
 #X obj 51 448 notein;
 #X obj 51 532 pack;
-#N canvas 0 341 1366 709 hurgytronOSC 1;
+#N canvas 0 341 1366 709 hurgytronOSC 0;
 #X obj 423 25 inlet;
 #X obj 423 55 unpack;
 #X text 467 24 entrée notes midi;
@@ -224,7 +224,7 @@
 #X obj 905 110 / 16383;
 #X obj 905 133 * 127;
 #X floatatom 906 162 5 0 0 0 - - -;
-#N canvas 0 341 1366 709 osc_interface 1;
+#N canvas 0 341 1366 709 osc_interface 0;
 #X obj 442 105 cnv 15 100 60 empty empty empty 20 12 0 10 -262144 -1
 0;
 #X obj 17 18 inlet connect;
@@ -495,7 +495,7 @@ ce que reçoit et envoie la carte., f 61;
 #X msg 488 434 172.24.1.143;
 #X obj 949 -79 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
-#X obj 227 581 s oscinput_onepacket;
+#X obj 227 581 s oscinput_bdles;
 #X connect 2 0 0 0;
 #X connect 2 0 3 0;
 #X connect 2 1 1 0;
@@ -544,8 +544,6 @@ ce que reçoit et envoie la carte., f 61;
 #X connect 40 0 35 1;
 #X connect 42 0 35 0;
 #X connect 43 0 17 0;
-#X connect 43 0 16 0;
-#X connect 43 0 15 0;
 #X connect 43 0 8 0;
 #X connect 43 0 7 0;
 #X connect 43 0 6 0;
@@ -554,6 +552,8 @@ ce que reçoit et envoie la carte., f 61;
 #X connect 43 0 11 0;
 #X connect 43 0 10 0;
 #X connect 43 0 9 0;
+#X connect 43 0 16 0;
+#X connect 43 0 15 0;
 #X connect 43 0 21 0;
 #X connect 43 0 20 0;
 #X connect 43 0 19 0;
