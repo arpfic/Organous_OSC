@@ -26,8 +26,8 @@ void PCA9956A::initialize( void )
         0x80, 0x00,                                 //  GRPPWM, GRPFREQ
     };
 
-    pwm( ALLPORTS, 0.0 );    
-    current( ALLPORTS, 0.1 );    
+    pwm( ALLPORTS, 0 );
+    current( ALLPORTS, 127 );    
 
     write( init_array, sizeof( init_array ) );
 }

@@ -25,7 +25,7 @@
  *  
  *  No instance can be made from this class
  */
-class PCA995xA : public CompLedDvrCC
+class PCA995xA
 {
 public:
     PCA995xA( PinName i2c_sda, PinName i2c_scl, event_callback_t cb_function, char i2c_address = DEFAULT_I2C_ADDR );
@@ -34,11 +34,11 @@ public:
 
     void            reset( void );
 
-    virtual void    pwm( int port, float v );
-    virtual void    current( int port, float vp );
+    virtual void    pwm( int port, char v );
+    virtual void    current( int port, char vp );
 
-    void            pwm( float *vp );
-    void            current( float *vP );
+    void            pwm( char *vp );
+    void            current( char *vP );
     
     virtual int     number_of_ports( void )             = 0;
 

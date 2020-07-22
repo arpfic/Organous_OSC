@@ -36,12 +36,12 @@
 /* -----------------------------------------------------------------------------
  * COIL DEFAULTS SET'S
  * - ATTACK_DELAY before sustain (millisec)
- * - ATTACK PWM value  (0.0-1.0)
- * - SUSTAIN PWM value (0.0-1.0)
+ * - ATTACK PWM value  (0-255)
+ * - SUSTAIN PWM value (0-255)
  */
 #define COIL_ATTACK_DELAY                       20
-#define COIL_ATTACK                             (float)1.0
-#define COIL_SUSTAIN                            (float)0.6
+#define COIL_ATTACK                             255
+#define COIL_SUSTAIN                            (uint8_t)153
 
 /* -----------------------------------------------------------------------------
  * OSC and BUFFER STUFF :
@@ -71,6 +71,9 @@
  */
 #define ENABLE_PINS                             24
 #define MAX_OUT_ENABLED                         OUT_ENABLED4
+#define OFF                                     255
+#define ON                                      0
+
 /* ---------------------------------------------
  * A_SIDE (right) : OUT 1-24
  * We only have to change this with hardware changes.

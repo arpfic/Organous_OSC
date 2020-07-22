@@ -57,8 +57,8 @@ void CoilDriver::init( void )
 {
     drv_rst = 0;
     i2c.frequency(1000000);
-    led_drv.current(ALLPORTS, 0.5); //  Set all ports output current 50%
-    led_drv.pwm(ALLPORTS, 1.0); //  Set all ports output current 50%
+    led_drv.current(ALLPORTS, 127); //  Set all ports output current 50%
+    led_drv.pwm(ALLPORTS, OFF);     //  Set all ports output to OFF
     // Init the register
     for (int i = 0; i < ENABLE_PINS; i++)
         OUTRegister[i] = OUT_IDLE;
@@ -75,29 +75,27 @@ void CoilDriver::init( void )
  * - ENABLE with NUCLEO_F767ZI's GPIO to DRV8844
  * Note : a multi-user stack is implemented.
  */
-void CoilDriver::on(int port, float percent)
+void CoilDriver::on(int port, uint8_t ratio)
 {
-    if (percent >= 0.0f && percent <= 1.0f) {
-        if (port == ALLPORTS) {
-            for (int i = 0; i < ENABLE_PINS; i++) {
-                // Enable the OUT
-                drv_ena[i] = 1;
-                // Increment if not already to max
-                if (OUTRegister[i] < MAX_OUT_ENABLED) {
-                    OUTRegister[i] = OUTRegister[i] + OUT_ENABLED1;
-                }
-            }
-        } else {
+    // NB: ALLPORTS is already implemented into Class
+    if (port == ALLPORTS) {
+        for (int i = 0; i < ENABLE_PINS; i++) {
             // Enable the OUT
-            drv_ena[port] = 1;
+            drv_ena[i] = 1;
             // Increment if not already to max
-            if (OUTRegister[port] < MAX_OUT_ENABLED) {
-                OUTRegister[port] = OUTRegister[port] + OUT_ENABLED1;
+            if (OUTRegister[i] < MAX_OUT_ENABLED) {
+                OUTRegister[i] = OUTRegister[i] + OUT_ENABLED1;
             }
         }
-        // NB: ALLPORTS is already implemented into Class
-        led_drv.pwm(port, (float)1.0 - percent);
+    } else {
+        // Enable the OUT
+        drv_ena[port] = 1;
+        // Increment if not already to max
+        if (OUTRegister[port] < MAX_OUT_ENABLED) {
+            OUTRegister[port] = OUTRegister[port] + OUT_ENABLED1;
+        }
     }
+    led_drv.pwm(port, 255 - ratio);
 }
 
 /* Same idea with off()
@@ -113,7 +111,7 @@ void CoilDriver::off(int port)
                 // Set to IDLE AND disable OUT
                 OUTRegister[i] = OUT_IDLE;
                 drv_ena[i] = 0;
-                led_drv.pwm(i, (float)1.0);
+                led_drv.pwm(i, OFF);
             }
         }
     } else {
@@ -122,7 +120,7 @@ void CoilDriver::off(int port)
         } else if (OUTRegister[port] == OUT_ENABLED1 || OUTRegister[port] == OUT_IDLE) {
             OUTRegister[port] = OUT_IDLE;
             drv_ena[port] = 0;
-            led_drv.pwm(port, (float)1.0);
+            led_drv.pwm(port, OFF);
         }
     }
 }
@@ -135,21 +133,20 @@ void CoilDriver::forceoff(int port)
         for (int i = 0; i < ENABLE_PINS; i++) {
             OUTRegister[i] = OUT_IDLE;
             drv_ena[i] = 0;
-            led_drv.pwm(i, (float)1.0);
+            led_drv.pwm(i, OFF);
         }
     } else {
         OUTRegister[port] = OUT_IDLE;
         drv_ena[port] = 0;
-        led_drv.pwm(port, (float)1.0);
+        led_drv.pwm(port, OFF);
     }
 }
 
 /* Simple glue function to set PWM in PCA9956A.
  */
-void CoilDriver::pwmSet(int port, float percent)
+void CoilDriver::pwmSet(int port, uint8_t ratio)
 {
-    if (percent >= 0.0f && percent <= 1.0f)
-        led_drv.pwm( port, (float)1.0 - percent );
+    led_drv.pwm( port, 255 - ratio);
 }
 
 /* Simple function to enable/disable ENABLE_PINS (DRV8844)
@@ -168,20 +165,20 @@ void CoilDriver::drvEnable(int port, int state)
 }
 
 // Function called by coilQueue in coilOn() : Coil sustain to COIL_SUSTAIN PWM.
-void CoilDriver::coilSustain(int port, float percent_sustain)
+void CoilDriver::coilSustain(int port, uint8_t sustain)
 {
     if (drv_ena[port].read() != 0)
-        led_drv.pwm(port, (float)1.0 - percent_sustain);
+        led_drv.pwm(port, 255 - sustain);
     return;
 }
 
-/* Set the coil to percent_attack PWM ratio, and...
- * execute coilSustain() after a delay with a queue to PWM ratio percent_sustain.
+/* Set the coil to attack PWM ratio, and...
+ * execute coilSustain() after a delay with a queue to PWM ratio sustain.
  */
-void CoilDriver::coilOn(int port, float percent_attack, float percent_sustain, int millisec)
+void CoilDriver::coilOn(int port, uint8_t attack, uint8_t sustain, int millisec)
 {
-    on(port, percent_attack);
-    coilQueue.call_in(millisec, this, &CoilDriver::coilSustain, port, percent_sustain);
+    on(port, attack);
+    coilQueue.call_in(millisec, this, &CoilDriver::coilSustain, port, sustain);
 }
 
 // Same but with fixed COIL_ATTACK_DELAY millisec.
@@ -197,11 +194,11 @@ void CoilDriver::coilOff(int port)
     off(port);
 }
 
-// Write PWM ratio (percent) to FastPWM oe
-void CoilDriver::oeCycle(float percent)
+// Write PWM ratio (0-255) to FastPWM oe
+void CoilDriver::oeCycle(float ratio)
 {
-    if (percent >= 0.0f && percent <= 1.0f)
-        oe.write(percent);
+    if (ratio >= 0.0f && ratio <= 1.0f)
+        oe.write(ratio);
 }
 
 // Same but with the period
@@ -214,19 +211,19 @@ void CoilDriver::oePeriod(float period_sec)
 /* Set ENABLE and the motor's PWM connected to IN1-IN2 or IN3-IN4 of a DRV8844
  * in a PUSH-PULL style
  */
-int CoilDriver::motor(int port, int next_port, float percent_speed){
+int CoilDriver::motor(int port, int next_port, int speed){
     if (next_port % 2 && next_port == port + 1 &&
-            percent_speed >= -1.0f && percent_speed <= 1.0f) {
-        if (percent_speed < 0.0f) {
+            speed >= -255 && speed <= 255) {
+        if (speed < 0) {
             // Set PWM to PUSH PULL
-            led_drv.pwm(port,      (float)1.0 + percent_speed);// Note the "+"
-            led_drv.pwm(next_port, (float)1.0);// inversed :)
-        } else if (percent_speed > 0.0f) {
-            led_drv.pwm(next_port, (float)1.0 - percent_speed);
-            led_drv.pwm(port,      (float)1.0);
-        } else { // speed == 0.0f
-            led_drv.pwm(port,      (float)1.0);
-            led_drv.pwm(next_port, (float)1.0);
+            led_drv.pwm(port,      (uint8_t)(255 + speed));// Note the "+"
+            led_drv.pwm(next_port, OFF);// inversed :)
+        } else if (speed > 0) {
+            led_drv.pwm(next_port, (uint8_t)(255 - speed));
+            led_drv.pwm(port,      OFF);
+        } else { // speed == 0
+            led_drv.pwm(port,      OFF);
+            led_drv.pwm(next_port, OFF);
         }
         // Open valves !
         drv_ena[port]      = 1;
@@ -241,8 +238,8 @@ int CoilDriver::motor(int port, int next_port, float percent_speed){
 int CoilDriver::motorBrake(int port, int next_port) {
     if (next_port % 2 && next_port == port + 1) {
         // Set PWM to MAXIMUM
-        led_drv.pwm(port,      (float)1.0);
-        led_drv.pwm(next_port, (float)1.0);
+        led_drv.pwm(port,      OFF);
+        led_drv.pwm(next_port, OFF);
         // Set ENABLE to 1
         drv_ena[port]      = 1;
         drv_ena[next_port] = 1;
@@ -256,8 +253,8 @@ int CoilDriver::motorBrake(int port, int next_port) {
 int CoilDriver::motorCoast(int port, int next_port){
     if (next_port % 2 && next_port == port + 1) {
         // Set PWM to MINIMUM
-        led_drv.pwm(port,      (float)1.0);
-        led_drv.pwm(next_port, (float)1.0);
+        led_drv.pwm(port,      OFF);
+        led_drv.pwm(next_port, OFF);
         // Set ENABLE to 1
         drv_ena[port]      = 0;
         drv_ena[next_port] = 0;

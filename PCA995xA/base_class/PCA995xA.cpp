@@ -23,15 +23,15 @@ void PCA995xA::reset( void )
     i2c.write( 0x00, &v, 1 );
 }
 
-void PCA995xA::pwm( int port, float v )
+void PCA995xA::pwm( int port, char v )
 {
     char    reg_addr;
     
     reg_addr    = pwm_register_access( port );
-    write( reg_addr, (char)(v * 255.0) );
+    write( reg_addr, v );
 }
 
-void PCA995xA::pwm( float *vp )
+void PCA995xA::pwm( char *vp )
 {
     int     n_of_ports  = number_of_ports();
     char    data[ n_of_ports + 1 ];
@@ -39,20 +39,20 @@ void PCA995xA::pwm( float *vp )
     *data    = pwm_register_access( 0 );
     
     for ( int i = 1; i <= n_of_ports; i++ )
-        data[ i ]   = (char)(*vp++ * 255.0);
+        data[ i ] = *vp++;
         
     write( data, sizeof( data ) );
 }
 
-void PCA995xA::current( int port, float v )
+void PCA995xA::current( int port, char v )
 {
     char    reg_addr;
     
     reg_addr    = current_register_access( port );
-    write( reg_addr, (char)(v * 255.0) );
+    write( reg_addr, v );
 }
 
-void PCA995xA::current( float *vp )
+void PCA995xA::current( char *vp )
 {
     int     n_of_ports  = number_of_ports();
     char    data[ n_of_ports + 1 ];
@@ -60,7 +60,7 @@ void PCA995xA::current( float *vp )
     *data    = pwm_register_access( 0 );
     
     for ( int i = 1; i <= n_of_ports; i++ )
-        data[ i ]   = (char)(*vp++ * 255.0);
+        data[ i ] = *vp++;
         
     write( data, sizeof( data ) );
 }

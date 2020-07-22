@@ -127,23 +127,23 @@ void menu_main_coil()
     }
 }
 
-/* OSC msg  : /main/motor iif PORT NEXT_PORT SPEED
- * Purpose  : drive motor function. SPEED set between -1 and +1
+/* OSC msg  : /main/motor iii PORT NEXT_PORT SPEED
+ * Purpose  : drive motor function. SPEED set between -255 and +255
  * Note     : This is a PUSH/PULL configuration
  */
 void menu_main_motor(){
     if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i'
-            && p_osc->format[2] == 'f') {
+            && p_osc->format[2] == 'i') {
         int port      = tosc_getNextInt32(p_osc);
         int next_port = tosc_getNextInt32(p_osc);
-        float speed   = tosc_getNextFloat(p_osc);
-        if (speed >= -1.0f && speed <= 1.0f &&
+        int speed     = tosc_getNextInt32(p_osc);
+        if (speed >= -255 && speed <= 255 &&
                 port >= 0 && port < 23 ) { //port is even
             int r = driver_A->motor(port, next_port, speed);
             if (r != 0)
                 debug_OSC("/main/motor : wrong PINs configuration (see manual)");
 #if B_SIDE == 1
-        } else if (speed >= -1.0f && speed <= 1.0f &&
+        } else if (speed >= -255 && speed <= 255 &&
                 port >= 24 && port < 47 ) {
             int r = driver_B->motor(port - 24, next_port - 24, speed);
             if (r != 0)
@@ -296,51 +296,51 @@ void menu_lowlevel_output_state()
     }
 }
 
-/* OSC msg  : /lowlevel/pwm if PORT RATIO
- * Purpose  : control blinking of LEDS with RATIO[0:1]
+/* OSC msg  : /lowlevel/pwm ii PORT RATIO
+ * Purpose  : control blinking of LEDS with RATIO between 0 and 255
  */
 void menu_lowlevel_pwm()
 {
-    if (p_osc->format[0] == 'i' && p_osc->format[1] == 'f') {
-        int port  = tosc_getNextInt32(p_osc);
-        float pwm = tosc_getNextFloat(p_osc);
-        if (pwm > 0 && pwm <=1 && port >= 0 && port < 24 ) {
+    if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i') {
+        int port = tosc_getNextInt32(p_osc);
+        int pwm  = tosc_getNextInt32(p_osc);
+        if (pwm >= 0 && pwm <= 255 && port >= 0 && port < 24 ) {
             if (debug_on) {
                 char buf[64];
-                sprintf(buf, "OUT %i PWM %2f", port, pwm);
+                sprintf(buf, "OUT %i PWM %d", port, pwm);
                 debug_OSC(buf);
             }
-            driver_A->pwmSet(port, pwm);
+            driver_A->pwmSet(port, (uint8_t)pwm);
 #if B_SIDE == 1
-        } else if (pwm > 0 && pwm <=1 && port >= 24 && port < 48 ) {
+        } else if (pwm >= 0 && pwm <= 255 && port >= 24 && port < 48 ) {
             if (debug_on) {
                 char buf[64];
-                sprintf(buf, "OUT %i PWM %2f", port, pwm);
+                sprintf(buf, "OUT %i PWM %d", port, pwm);
                 debug_OSC(buf);
             }
-            driver_B->pwmSet(port - 24, pwm);
+            driver_B->pwmSet(port - 24, (uint8_t)pwm);
 #endif
         }
     }
 }
 
-/* OSC msg  : /lowlevel/pwm_all f RATIO
- * Purpose  : control blinking of all LEDS at the same time with RATIO[0:1]
+/* OSC msg  : /lowlevel/pwm_all i RATIO
+ * Purpose  : control blinking of all LEDS at the same time with RATIO between 0 and 255
  * Note     : Can be used in conjunction with OE
  */
 void menu_lowlevel_pwm_all()
 {
-    if (p_osc->format[0] == 'f') {
-        float pwm = tosc_getNextFloat(p_osc);
-        if (pwm > 0 && pwm <=1) {
+    if (p_osc->format[0] == 'i') {
+        int pwm = tosc_getNextInt32(p_osc);
+        if (pwm >= 0 && pwm <= 255) {
             if (debug_on) {
                 char buf[64];
-                sprintf(buf, "ALL PWM %2f", pwm);
+                sprintf(buf, "ALL PWM %2d", pwm);
                 debug_OSC(buf);
             }
-            driver_A->pwmSet(ALLPORTS, pwm);
+            driver_A->pwmSet(ALLPORTS, (uint8_t)pwm);
 #if B_SIDE == 1
-            driver_B->pwmSet(ALLPORTS, pwm);
+            driver_B->pwmSet(ALLPORTS, (uint8_t)pwm);
 #endif
         }
     }
