@@ -54,27 +54,27 @@ struct menu_cases {
 };
 
 menu_cases cases [] = {
-    { "/main",     menu_main       },
-    { "/lowlevel", menu_lowlevel   },
-    { "/tools",    menu_tools      }
+    { "/"IF_OSC_NAME,             menu_main       },
+    { "/"IF_OSC_NAME"/ll",        menu_lowlevel   },
+    { "/tools",                   menu_tools      }
 };
 
 menu_cases main_cases [] = {
-    { "/main/coil",        menu_main_coil        },
-    { "/main/motor",       menu_main_motor       },
-    { "/main/motor_brake", menu_main_motor_brake },
-    { "/main/motor_coast", menu_main_motor_coast },
-    { "/main/tone",        menu_main_tone        }
+    { "/"IF_OSC_NAME"/coil",        menu_main_coil        },
+    { "/"IF_OSC_NAME"/motor",       menu_main_motor       },
+    { "/"IF_OSC_NAME"/motor_brake", menu_main_motor_brake },
+    { "/"IF_OSC_NAME"/motor_coast", menu_main_motor_coast },
+    { "/"IF_OSC_NAME"/tone",        menu_main_tone        }
 };
 
 menu_cases lowlevel_cases [] = {
-    { "/lowlevel/output",       menu_lowlevel_output       },
-    { "/lowlevel/output_all",   menu_lowlevel_output_all   },
-    { "/lowlevel/output_state", menu_lowlevel_output_state },
-    { "/lowlevel/pwm",          menu_lowlevel_pwm          },
-    { "/lowlevel/pwm_all",      menu_lowlevel_pwm_all      },
-    { "/lowlevel/pwm_state",    menu_lowlevel_pwm_state    },
-    { "/lowlevel/oe",           menu_lowlevel_oe           }
+    { "/"IF_OSC_NAME"/ll/output",       menu_lowlevel_output       },
+    { "/"IF_OSC_NAME"/ll/output_all",   menu_lowlevel_output_all   },
+    { "/"IF_OSC_NAME"/ll/output_state", menu_lowlevel_output_state },
+    { "/"IF_OSC_NAME"/ll/pwm",          menu_lowlevel_pwm          },
+    { "/"IF_OSC_NAME"/ll/pwm_all",      menu_lowlevel_pwm_all      },
+    { "/"IF_OSC_NAME"/ll/pwm_state",    menu_lowlevel_pwm_state    },
+    { "/"IF_OSC_NAME"/ll/oe",           menu_lowlevel_oe           }
 };
 
 menu_cases tools_cases [] = {
@@ -138,7 +138,7 @@ void menu_main_motor(){
         int next_port = tosc_getNextInt32(p_osc);
         float speed   = tosc_getNextFloat(p_osc);
         if (speed >= -1.0f && speed <= 1.0f &&
-                port >= 0 && port < 23 ) { // port is even
+                port >= 0 && port < 23 ) { //port is even
             int r = driver_A->motor(port, next_port, speed);
             if (r != 0)
                 debug_OSC("/main/motor : wrong PINs configuration (see manual)");
@@ -434,6 +434,7 @@ void menu_tools_hardreset()
     delete udp_socket;
     delete client_addr;
     delete master_address;
+
     // Just reset the main board
     NVIC_SystemReset();
     //HAL_NVIC_SystemReset();

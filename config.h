@@ -20,7 +20,8 @@
 /* -----------------------------------------------------------------------------
  * MAIN CONFIG : Here we can set the main properties
  */
-#define IF_NAME                                 "SURAIGU mod."
+#define IF_NAME                                 "SURAIGU board"
+#define IF_OSC_NAME                             "suraig"
 #define SOFT_VER                                "v0.2"
 // Is the B_SIDE card present or only A_SIDE ?
 #define B_SIDE                                  1
