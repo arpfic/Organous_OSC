@@ -54,27 +54,27 @@ struct menu_cases {
 };
 
 menu_cases cases [] = {
-    { "/"IF_OSC_NAME,             menu_main       },
-    { "/"IF_OSC_NAME"/ll",        menu_lowlevel   },
+    { "/" IF_OSC_NAME ,             menu_main       },
+    { "/" IF_OSC_NAME "/ll",        menu_lowlevel   },
     { "/tools",                   menu_tools      }
 };
 
 menu_cases main_cases [] = {
-    { "/"IF_OSC_NAME"/coil",        menu_main_coil        },
-    { "/"IF_OSC_NAME"/motor",       menu_main_motor       },
-    { "/"IF_OSC_NAME"/motor_brake", menu_main_motor_brake },
-    { "/"IF_OSC_NAME"/motor_coast", menu_main_motor_coast },
-    { "/"IF_OSC_NAME"/tone",        menu_main_tone        }
+    { "/" IF_OSC_NAME "/coil",        menu_main_coil        },
+    { "/" IF_OSC_NAME "/motor",       menu_main_motor       },
+    { "/" IF_OSC_NAME "/motor_brake", menu_main_motor_brake },
+    { "/" IF_OSC_NAME "/motor_coast", menu_main_motor_coast },
+    { "/" IF_OSC_NAME "/tone",        menu_main_tone        }
 };
 
 menu_cases lowlevel_cases [] = {
-    { "/"IF_OSC_NAME"/ll/output",       menu_lowlevel_output       },
-    { "/"IF_OSC_NAME"/ll/output_all",   menu_lowlevel_output_all   },
-    { "/"IF_OSC_NAME"/ll/output_state", menu_lowlevel_output_state },
-    { "/"IF_OSC_NAME"/ll/pwm",          menu_lowlevel_pwm          },
-    { "/"IF_OSC_NAME"/ll/pwm_all",      menu_lowlevel_pwm_all      },
-    { "/"IF_OSC_NAME"/ll/pwm_state",    menu_lowlevel_pwm_state    },
-    { "/"IF_OSC_NAME"/ll/oe",           menu_lowlevel_oe           }
+    { "/" IF_OSC_NAME "/ll/output",       menu_lowlevel_output       },
+    { "/" IF_OSC_NAME "/ll/output_all",   menu_lowlevel_output_all   },
+    { "/" IF_OSC_NAME "/ll/output_state", menu_lowlevel_output_state },
+    { "/" IF_OSC_NAME "/ll/pwm",          menu_lowlevel_pwm          },
+    { "/" IF_OSC_NAME "/ll/pwm_all",      menu_lowlevel_pwm_all      },
+    { "/" IF_OSC_NAME "/ll/pwm_state",    menu_lowlevel_pwm_state    },
+    { "/" IF_OSC_NAME "/ll/oe",           menu_lowlevel_oe           }
 };
 
 menu_cases tools_cases [] = {

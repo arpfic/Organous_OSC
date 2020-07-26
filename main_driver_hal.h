@@ -21,6 +21,7 @@
 
 #include "mbed.h"
 #include "config.h"
+#include "main_driver_register.h"
 #include "PinDetect.h"
 #include "FastPWM.h"
 #include "SoftPWM.h"
@@ -70,6 +71,7 @@ public:
     };
 
     int OUTRegister[ENABLE_PINS];
+    DrvRegister outRegister;
 
     // Note : all DRV8844s shared RESET and FAULT PINS.
     DigitalOut  drv_rst;

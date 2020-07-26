@@ -71,6 +71,8 @@
  */
 #define ENABLE_PINS                             24
 #define MAX_OUT_ENABLED                         OUT_ENABLED4
+// If > 4, need to rewrite code associated to OutRegister
+#define OUT_MAXUSERS                            4
 #define OFF                                     255
 #define ON                                      0
 

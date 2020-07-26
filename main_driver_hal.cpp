@@ -32,7 +32,7 @@ CoilDriver::CoilDriver(PinName _i2c_sda, PinName _i2c_scl, PinName _pinoe,
         drv_ena(_driver_table)
 {
     init();
-};
+}
 
 CoilDriver::~CoilDriver()
 {
@@ -62,6 +62,7 @@ void CoilDriver::init( void )
     // Init the register
     for (int i = 0; i < ENABLE_PINS; i++)
         OUTRegister[i] = OUT_IDLE;
+    //reg_Init(outregister);
     // oe = 0 means always on
     oe.write(0.0f);
     oe.period(1.0f);
@@ -70,6 +71,9 @@ void CoilDriver::init( void )
     coilThrd.start(callback(&coilQueue, &EventQueue::dispatch_forever));
 }
 
+/*----------------------------------------------------------------------------/
+/  LOW-LEVEL FUNCTIONS                                                        /
+/----------------------------------------------------------------------------*/
 /* Simple on() function, whose purpose is to set :
  * - PWM with PCA9956A, and
  * - ENABLE with NUCLEO_F767ZI's GPIO to DRV8844
@@ -164,7 +168,12 @@ void CoilDriver::drvEnable(int port, int state)
     }
 }
 
-// Function called by coilQueue in coilOn() : Coil sustain to COIL_SUSTAIN PWM.
+/*----------------------------------------------------------------------------/
+/  HIGH-LEVEL FUNCTIONS                                                      /
+/----------------------------------------------------------------------------*/
+/* Internal callback function called by coilQueue in coilOn() :
+ * Coil sustain to COIL_SUSTAIN PWM.
+ */
 void CoilDriver::coilSustain(int port, uint8_t sustain)
 {
     if (drv_ena[port].read() != 0)
