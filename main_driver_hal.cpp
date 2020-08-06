@@ -59,15 +59,11 @@ void CoilDriver::init( void )
     i2c.frequency(1000000);
     led_drv.current(ALLPORTS, 127); //  Set all ports output current 50%
     led_drv.pwm(ALLPORTS, OFF);     //  Set all ports output to OFF
-    // Init the register
-    for (int i = 0; i < ENABLE_PINS; i++)
-        OUTRegister[i] = OUT_IDLE;
-    //reg_Init(outregister);
     // oe = 0 means always on
     oe.write(0.0f);
     oe.period(1.0f);
     drv_rst = 1;
-    // Attack-sustain Thread callback start
+    // coil* Attack-sustain Thread callback start
     coilThrd.start(callback(&coilQueue, &EventQueue::dispatch_forever));
 }
 
@@ -77,54 +73,45 @@ void CoilDriver::init( void )
 /* Simple on() function, whose purpose is to set :
  * - PWM with PCA9956A, and
  * - ENABLE with NUCLEO_F767ZI's GPIO to DRV8844
- * Note : a multi-user stack is implemented.
  */
 void CoilDriver::on(int port, uint8_t ratio)
 {
     // NB: ALLPORTS is already implemented into Class
     if (port == ALLPORTS) {
         for (int i = 0; i < ENABLE_PINS; i++) {
-            // Enable the OUT
-            drv_ena[i] = 1;
-            // Increment if not already to max
-            if (OUTRegister[i] < MAX_OUT_ENABLED) {
-                OUTRegister[i] = OUTRegister[i] + OUT_ENABLED1;
+            if (outRegister.reg_pushPort(i, ratio, true) != -1) {
+                led_drv.pwm(i, 255 - ratio);
+                drv_ena[i] = 1;
             }
         }
     } else {
+        if (outRegister.reg_pushPort(port, ratio, true) != -1) {
+        led_drv.pwm(port, 255 - ratio);
         // Enable the OUT
         drv_ena[port] = 1;
-        // Increment if not already to max
-        if (OUTRegister[port] < MAX_OUT_ENABLED) {
-            OUTRegister[port] = OUTRegister[port] + OUT_ENABLED1;
         }
     }
-    led_drv.pwm(port, 255 - ratio);
 }
 
 /* Same idea with off()
  */
 void CoilDriver::off(int port)
 {
+    char user = 0;
+    int value = 0; 
+    bool enable = false;
+
     if (port == ALLPORTS) {
         for (int i = 0; i < ENABLE_PINS; i++) {
-            // Decrement and do nothing more if more than OUT_ENABLED1
-            if (OUTRegister[i] > OUT_ENABLED1) {
-                OUTRegister[i] = OUTRegister[i] - OUT_ENABLED1;
-            } else if (OUTRegister[i] == OUT_ENABLED1 || OUTRegister[i] == OUT_IDLE) {
-                // Set to IDLE AND disable OUT
-                OUTRegister[i] = OUT_IDLE;
-                drv_ena[i] = 0;
-                led_drv.pwm(i, OFF);
+            if (outRegister.reg_pullPort(i, &user, &value, &enable) != -1) {
+                drv_ena[i] = enable;
+                led_drv.pwm(i, (255 - value));
             }
         }
     } else {
-        if (OUTRegister[port] > OUT_ENABLED1) {
-            OUTRegister[port] = OUTRegister[port] - OUT_ENABLED1;
-        } else if (OUTRegister[port] == OUT_ENABLED1 || OUTRegister[port] == OUT_IDLE) {
-            OUTRegister[port] = OUT_IDLE;
-            drv_ena[port] = 0;
-            led_drv.pwm(port, OFF);
+        if (outRegister.reg_pullPort(port, &user, &value, &enable) != -1) {
+            drv_ena[port] = enable;
+            led_drv.pwm(port, (255 - value));
         }
     }
 }
@@ -135,12 +122,12 @@ void CoilDriver::forceoff(int port)
 {
     if (port == ALLPORTS) {
         for (int i = 0; i < ENABLE_PINS; i++) {
-            OUTRegister[i] = OUT_IDLE;
+            outRegister.resetAll();
             drv_ena[i] = 0;
             led_drv.pwm(i, OFF);
         }
     } else {
-        OUTRegister[port] = OUT_IDLE;
+        outRegister.resetPort(port);
         drv_ena[port] = 0;
         led_drv.pwm(port, OFF);
     }
@@ -150,7 +137,19 @@ void CoilDriver::forceoff(int port)
  */
 void CoilDriver::pwmSet(int port, uint8_t ratio)
 {
-    led_drv.pwm( port, 255 - ratio);
+    if (port == ALLPORTS) {
+        for (int i = 0; i < ENABLE_PINS; i++) {
+            if (outRegister.reg_readUser(i) == 0)
+                outRegister.reg_increaseUser(i);
+            outRegister.reg_writeValue(i, ratio);
+        }
+        led_drv.pwm(ALLPORTS, 255 - ratio);
+    } else {
+        if (outRegister.reg_readUser(port) == 0)
+            outRegister.reg_increaseUser(port);
+        outRegister.reg_writeValue(port, ratio);
+        led_drv.pwm(port, 255 - ratio);
+    }
 }
 
 /* Simple function to enable/disable ENABLE_PINS (DRV8844)
@@ -160,9 +159,15 @@ void CoilDriver::drvEnable(int port, int state)
     if (state >= 0 && state <= 1) {
         if (port == ALLPORTS) {
             for (int i = 0; i < ENABLE_PINS; i++) {
+                if (outRegister.reg_readUser(i) == 0)
+                    outRegister.reg_increaseUser(i);
+                outRegister.reg_writeEnable(i, (bool)state);
                 drv_ena[i] = state;
             }
         } else {
+            if (outRegister.reg_readUser(port) == 0)
+                outRegister.reg_increaseUser(port);
+            outRegister.reg_writeEnable(port, (bool)state);
             drv_ena[port] = state;
         }
     }
@@ -177,12 +182,18 @@ void CoilDriver::drvEnable(int port, int state)
 void CoilDriver::coilSustain(int port, uint8_t sustain)
 {
     if (drv_ena[port].read() != 0)
-        led_drv.pwm(port, 255 - sustain);
+        outRegister.reg_cleanValues(port);
+        outRegister.reg_decreaseUser(port);
+        if (outRegister.reg_pushPort(port, sustain, true) != -1) {
+            // ena still 1
+            led_drv.pwm(port, 255 - sustain);
+        }
     return;
 }
 
 /* Set the coil to attack PWM ratio, and...
  * execute coilSustain() after a delay with a queue to PWM ratio sustain.
+ * TODO: don't call the queue if error
  */
 void CoilDriver::coilOn(int port, uint8_t attack, uint8_t sustain, int millisec)
 {
@@ -206,15 +217,17 @@ void CoilDriver::coilOff(int port)
 // Write PWM ratio (0-255) to FastPWM oe
 void CoilDriver::oeCycle(float ratio)
 {
-    if (ratio >= 0.0f && ratio <= 1.0f)
-        oe.write(ratio);
+    float r = outRegister.reg_writeOEratio(ratio);
+    if (r != -1)
+        oe.write(r);
 }
 
 // Same but with the period
 void CoilDriver::oePeriod(float period_sec)
 {
-    if (period_sec > 0.0f)
-        oe.period(period_sec);
+    float r = outRegister.reg_writeOEperiod(period_sec);
+    if (r != -1)
+        oe.period(r);
 }
 
 /* Set ENABLE and the motor's PWM connected to IN1-IN2 or IN3-IN4 of a DRV8844

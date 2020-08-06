@@ -54,19 +54,30 @@ public:
     int  reg_readValue(int port);
     int  reg_readValue(int port, char user);
     int  reg_readUser(int port);
+    int  reg_cleanValues(int port);
     int  reg_writeEnable(int port, bool value);
     int  reg_writeValue(int port, int value);
     int  reg_increaseUser(int port);
     int  reg_decreaseUser(int port);
 
+    float  reg_readOEratio(void);
+    float  reg_readOEperiod(void);
+    float  reg_writeOEratio(float ratio);
+    float  reg_writeOEperiod(float period);
+
     // More high-level functions
     int  reg_pushPort(int port, int value, bool enable);
     int  reg_pullPort(int port, char* user, int* value, bool* enable);
-
+    int  reg_getPort(int port, char* user, int* value, bool* enable);
+    
     // SET and GET the MAIN STATE register at once. Take arrays as inputs/outputs
     void reg_getAll(char* users, int* values, bool* enables);
     void reg_setAll(char* users, int* values, bool* enables);
 
+    int  resetPort(int port);
+    void resetAll(void);
+
     virtual ~DrvRegister();
 };
+
 #endif // _MAIN_DRIVER_REGISTER_H

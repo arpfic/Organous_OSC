@@ -101,24 +101,24 @@ void menu_main_coil()
         int intensity = tosc_getNextInt32(p_osc);
         if (port >= 0 && port < 24 ) {
             if (intensity == 0) {
+                driver_A->coilOff(port);
                 if (debug_on) {
                     char buf[64];
-                    sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_A->OUTRegister[port]);
+                    sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_A->outRegister.reg_readUser(port));
                     debug_OSC(buf);
                 }
-                driver_A->coilOff(port);
             } else {
                 driver_A->coilOn(port);
             }
 #if B_SIDE == 1
         } else if (port >= 24 && port < 48 ) {
             if (intensity == 0) {
+                driver_B->coilOff(port - 24);
                 if (debug_on) {
                     char buf[64];
-                    sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_B->OUTRegister[port - 24]);
+                    sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_B->outRegister.reg_readUser(port - 24));
                     debug_OSC(buf);
                 }
-                driver_B->coilOff(port - 24);
             } else {
                 driver_B->coilOn(port - 24);
             }

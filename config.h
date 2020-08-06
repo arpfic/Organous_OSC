@@ -24,7 +24,7 @@
 #define IF_OSC_NAME                             "suraig"
 #define SOFT_VER                                "v0.2"
 // Is the B_SIDE card present or only A_SIDE ?
-#define B_SIDE                                  1
+#define B_SIDE                                  0
 
 /* -----------------------------------------------------------------------------
  * NUCLEO_F767ZI LEDS

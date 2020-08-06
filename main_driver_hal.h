@@ -70,7 +70,6 @@ public:
         OUT_ENABLED4
     };
 
-    int OUTRegister[ENABLE_PINS];
     DrvRegister outRegister;
 
     // Note : all DRV8844s shared RESET and FAULT PINS.
