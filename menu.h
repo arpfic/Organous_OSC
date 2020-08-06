@@ -419,6 +419,7 @@ void menu_tools_debug()
  */
 void menu_tools_hardreset()
 {
+/*
     // Blink for fun
     led_green = led_blue = led_red = 1;
     debug_OSC("REBOOTING...");
@@ -438,6 +439,8 @@ void menu_tools_hardreset()
     // Just reset the main board
     NVIC_SystemReset();
     //HAL_NVIC_SystemReset();
+*/
+    menu_tools_softreset();
 }
 
 /* OSC msg  : /tools/softreset NONE (Bang)
