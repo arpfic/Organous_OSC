@@ -179,16 +179,17 @@ void CoilDriver::drvEnable(int port, int state)
 /* Internal callback function called by coilQueue in coilOn() :
  * Coil sustain to COIL_SUSTAIN PWM.
  */
-void CoilDriver::coilSustain(int port, uint8_t sustain)
+void CoilDriver::coilSustain(int port, uint8_t sustain, int sustain_user)
 {
-    if (drv_ena[port].read() != 0)
+    // Is the state changed between call_in() ?
+    if (sustain_user == outRegister.reg_readUser(port)) {
         outRegister.reg_cleanValues(port);
         outRegister.reg_decreaseUser(port);
         if (outRegister.reg_pushPort(port, sustain, true) != -1) {
             // ena still 1
             led_drv.pwm(port, 255 - sustain);
         }
-    return;
+    }
 }
 
 /* Set the coil to attack PWM ratio, and...
@@ -198,14 +199,16 @@ void CoilDriver::coilSustain(int port, uint8_t sustain)
 void CoilDriver::coilOn(int port, uint8_t attack, uint8_t sustain, int millisec)
 {
     on(port, attack);
-    coilQueue.call_in(millisec, this, &CoilDriver::coilSustain, port, sustain);
+    int sustain_user = outRegister.reg_readUser(port);
+    coilQueue.call_in(millisec, this, &CoilDriver::coilSustain, port, sustain, sustain_user);
 }
 
 // Same but with fixed COIL_ATTACK_DELAY millisec.
 void CoilDriver::coilOn(int port)
 {
     on(port, COIL_ATTACK);
-    coilQueue.call_in(COIL_ATTACK_DELAY, this, &CoilDriver::coilSustain, port, COIL_SUSTAIN);
+    int sustain_user = outRegister.reg_readUser(port);
+    coilQueue.call_in(COIL_ATTACK_DELAY, this, &CoilDriver::coilSustain, port, COIL_SUSTAIN, sustain_user);
 }
 
 // gluecode to off()

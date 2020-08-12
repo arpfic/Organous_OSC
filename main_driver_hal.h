@@ -53,7 +53,7 @@ private:
     FastPWM     oe;
 
     void    init(void);
-    void    coilSustain(int port, uint8_t sustain);
+    void    coilSustain(int port, uint8_t sustain, int sustain_user);
 
 public:
     CoilDriver(PinName _i2c_sda, PinName _i2c_scl, PinName _pinoe,

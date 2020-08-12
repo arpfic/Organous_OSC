@@ -41,7 +41,8 @@
  */
 #define COIL_ATTACK_DELAY                       20
 #define COIL_ATTACK                             255
-#define COIL_SUSTAIN                            (uint8_t)153
+//#define COIL_SUSTAIN                            (uint8_t)153
+#define COIL_SUSTAIN                            (uint8_t)200
 
 /* -----------------------------------------------------------------------------
  * OSC and BUFFER STUFF :
@@ -63,7 +64,7 @@
  * (Please refer to https://www.nxp.com/docs/en/data-sheet/PCA9956B.pdf)
  */
 #define A_SIDE_I2C_TAG                         0xD2 // Vdd-GND-Vdd
-#define B_SIDE_I2C_TAG                         0x2A // GND-Vdd-GND
+#define B_SIDE_I2C_TAG                         0xD2 // GND-Vdd-GND
 #define DEFAULT_I2C_TAG                        0xD2 // GND-Vdd-GND
 
 /* -----------------------------------------------------------------------------

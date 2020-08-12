@@ -22,6 +22,7 @@
 void menu_main();
 void menu_lowlevel();
 void menu_tools();
+void menu_midi();
 
 void menu_main_coil();
 void menu_main_motor();
@@ -56,7 +57,8 @@ struct menu_cases {
 menu_cases cases [] = {
     { "/" IF_OSC_NAME ,             menu_main       },
     { "/" IF_OSC_NAME "/ll",        menu_lowlevel   },
-    { "/tools",                   menu_tools      }
+    { "/tools",                     menu_tools      },
+    { "/midi",                      menu_midi       },
 };
 
 menu_cases main_cases [] = {
@@ -460,13 +462,22 @@ void menu_tools_softreset()
     // Create new objects
     driver_A = new CoilDriver(PCA_A_SDA, PCA_A_SCL, PCA_A_OE, DRV_A_RST,
                               DRV_A_FAULT, driver_a_table, i2c_err_callback, A_SIDE_I2C_TAG);
+    driver_A->drv_fault.attach_asserted_held(queue_msg.event(driver_A_error_handler));
+    driver_A->drv_fault.setSamplesTillHeld(20);
+    driver_A->drv_fault.setAssertValue(0);
+    driver_A->drv_fault.setSampleFrequency();
 #if B_SIDE == 1
     driver_B->forceoff(ALLPORTS);
     delete driver_B;
     driver_B = new CoilDriver(PCA_B_SDA, PCA_B_SCL, PCA_B_OE, DRV_B_RST,
                               DRV_B_FAULT, driver_b_table, i2c_err_callback, B_SIDE_I2C_TAG);
+    driver_B->drv_fault.attach_asserted_held(queue_msg.event(driver_B_error_handler));
+    driver_B->drv_fault.setSamplesTillHeld(20);
+    driver_B->drv_fault.setAssertValue(0);
+    driver_B->drv_fault.setSampleFrequency();
 #endif
     led_green = led_blue = led_red = 0;
+    led_green = 1;
 }
 
 /* OSC msg  : /tools/forceoff_all NONE (Bang)
@@ -501,6 +512,49 @@ void menu_tools_count()
 		debug_OSC(buffer);
 		debug_smallcount = 0;
 	}
+}
+
+/* OSC msg  : /main/coil ii PORT INTENSITY
+ * Purpose  : drive coilOn/coilOff functions
+ * Note     : For now, INTENSITY is almost useless : we just launch coilOff if == 0
+ */
+void menu_midi()
+{
+    if (p_osc->format[0] == 's' && p_osc->format[1] == 'i' && p_osc->format[2] == 'i') {
+        char type[12];
+        strncpy(type, tosc_getNextString(p_osc), 12);
+        int port = tosc_getNextInt32(p_osc);
+        int intensity = tosc_getNextInt32(p_osc);
+
+        if (type != NULL) {
+            if (port >= 0 && port < 24 ) {
+                if (type == "note_off") {
+                    driver_A->coilOff(port - 36);
+                    if (debug_on) {
+                        char buf[64];
+                        sprintf(buf, "%s\n", type);
+                        //sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_A->outRegister.reg_readUser(port));
+                        debug_OSC(buf);
+                    }
+                } else if (type == "note_on") {
+                    driver_A->coilOn(port - 36);
+                }
+#if B_SIDE == 1
+            } else if (port >= 24 && port < 48 ) {
+                if (type == "note_off") {
+                    driver_B->coilOff(port - 24);
+                    if (debug_on) {
+                        char buf[64];
+                        sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_B->outRegister.reg_readUser(port - 24));
+                        debug_OSC(buf);
+                    }
+                } else if (type == "note_on") {
+                    driver_B->coilOn(port - 24);
+                }
+#endif
+            }
+        }
+    }
 }
 
 // Menu parsers to function pointers
