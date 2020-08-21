@@ -1,0 +1,14 @@
+noaudioin: True
+noaudioout: True
+midiapi: 1
+nomidiin: False
+midiindev1: 1
+midiindevname1: ALSA MIDI device #1
+nomidiout: False
+midioutdev1: 0
+midioutdevname1: ALSA MIDI device #1
+path1: /usr/lib/pd/extra/osc
+path2: /usr/lib/pd/extra/mrpeach/net
+npath: 2
+standardpath: 1
+verbose: 1

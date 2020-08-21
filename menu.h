@@ -28,7 +28,6 @@ void menu_main_coil();
 void menu_main_motor();
 void menu_main_motor_brake();
 void menu_main_motor_coast();
-void menu_main_tone();
 void menu_lowlevel_output();
 void menu_lowlevel_output_all();
 void menu_lowlevel_output_state();
@@ -36,6 +35,7 @@ void menu_lowlevel_pwm();
 void menu_lowlevel_pwm_all();
 void menu_lowlevel_pwm_state();
 void menu_lowlevel_oe();
+void menu_lowlevel_tone();
 void menu_tools_connect();
 void menu_tools_debug();
 void menu_tools_hardreset();
@@ -65,8 +65,7 @@ menu_cases main_cases [] = {
     { "/" IF_OSC_NAME "/coil",        menu_main_coil        },
     { "/" IF_OSC_NAME "/motor",       menu_main_motor       },
     { "/" IF_OSC_NAME "/motor_brake", menu_main_motor_brake },
-    { "/" IF_OSC_NAME "/motor_coast", menu_main_motor_coast },
-    { "/" IF_OSC_NAME "/tone",        menu_main_tone        }
+    { "/" IF_OSC_NAME "/motor_coast", menu_main_motor_coast }
 };
 
 menu_cases lowlevel_cases [] = {
@@ -76,7 +75,8 @@ menu_cases lowlevel_cases [] = {
     { "/" IF_OSC_NAME "/ll/pwm",          menu_lowlevel_pwm          },
     { "/" IF_OSC_NAME "/ll/pwm_all",      menu_lowlevel_pwm_all      },
     { "/" IF_OSC_NAME "/ll/pwm_state",    menu_lowlevel_pwm_state    },
-    { "/" IF_OSC_NAME "/ll/oe",           menu_lowlevel_oe           }
+    { "/" IF_OSC_NAME "/ll/oe",           menu_lowlevel_oe           },
+    { "/" IF_OSC_NAME "/ll/tone",         menu_lowlevel_tone         }
 };
 
 menu_cases tools_cases [] = {
@@ -101,7 +101,8 @@ void menu_main_coil()
     if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i') {
         int port = tosc_getNextInt32(p_osc);
         int intensity = tosc_getNextInt32(p_osc);
-        if (port >= 0 && port < 24 ) {
+        if (port >= IF_BASENOTE && port < IF_BASENOTE + A_SIDE_OUTS) {
+            port = port - IF_BASENOTE;
             if (intensity == 0) {
                 driver_A->coilOff(port);
                 if (debug_on) {
@@ -113,7 +114,8 @@ void menu_main_coil()
                 driver_A->coilOn(port);
             }
 #if B_SIDE == 1
-        } else if (port >= 24 && port < 48 ) {
+        } else if (port >= IF_BASENOTE + 24 && port < IF_BASENOTE + B_SIDE_OUTS + 24) {
+            port = port - IF_BASENOTE;
             if (intensity == 0) {
                 driver_B->coilOff(port - 24);
                 if (debug_on) {
@@ -203,17 +205,17 @@ void menu_main_motor_coast(){
  * Purpose  : Play a "note" in class-D style through all DRV8844 OUT and with OE setting
  * Note     : Very experimental and ugly. But promising.
  */
-void menu_main_tone()
+void menu_lowlevel_tone()
 {
     if (p_osc->format[0] == 'f') {
         float tone = tosc_getNextFloat(p_osc);
         if (tone >0) {
             // Little sampler Period init
             driver_A->oePeriod(1.0/200000.0);
-            driver_A->drvEnable(ALLPORTS, 1);
+            //driver_A->drvEnable(ALLPORTS, 1);
 #if B_SIDE == 1
             driver_B->oePeriod(1.0/200000.0);
-            driver_B->drvEnable(ALLPORTS, 1);
+            //driver_B->drvEnable(ALLPORTS, 1);
 
 #endif
             sample_ticker.detach();
@@ -230,7 +232,7 @@ void menu_lowlevel_output()
     if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i') {
         int port  = tosc_getNextInt32(p_osc);
         int state = tosc_getNextInt32(p_osc);
-        if (state >= 0 && state <= 1 && port >= 0 && port < 24 ) {
+        if (state >= 0 && state <= 1 && port >= 0 && port < A_SIDE_OUTS ) {
             if (debug_on) {
                 char buf[64];
                 sprintf(buf, "OUT %i %i", port, state);
@@ -238,7 +240,7 @@ void menu_lowlevel_output()
             }
             driver_A->drvEnable(port, state);
 #if B_SIDE == 1
-        } else if (state >= 0 && state <= 1 && port >= 24 && port < 48 ) {
+        } else if (state >= 0 && state <= 1 && port >= 24 && port < B_SIDE_OUTS + 24 ) {
             if (debug_on) {
                 char buf[64];
                 sprintf(buf, "OUT %i %i", port, state);
@@ -284,12 +286,12 @@ void menu_lowlevel_output_state()
 {
     if (p_osc->format[0] == 'i') {
         int port  = tosc_getNextInt32(p_osc);
-        if (port >= 0 && port < 24 ) {
+        if (port >= 0 && port < A_SIDE_OUTS ) {
             char buf[64];
             sprintf(buf, "OUT %i %i", port, driver_A->drv_ena[port].read());
             debug_OSC(buf);
 #if B_SIDE == 1
-        } else if (port >= 24 && port < 48 ) {
+        } else if (port >= 24 && port < B_SIDE_OUTS + 24 ) {
             char buf[64];
             sprintf(buf, "OUT %i %i", port, driver_B->drv_ena[port - 24].read());
             debug_OSC(buf);
@@ -306,7 +308,7 @@ void menu_lowlevel_pwm()
     if (p_osc->format[0] == 'i' && p_osc->format[1] == 'i') {
         int port = tosc_getNextInt32(p_osc);
         int pwm  = tosc_getNextInt32(p_osc);
-        if (pwm >= 0 && pwm <= 255 && port >= 0 && port < 24 ) {
+        if (pwm >= 0 && pwm <= 255 && port >= 0 && port < A_SIDE_OUTS ) {
             if (debug_on) {
                 char buf[64];
                 sprintf(buf, "OUT %i PWM %d", port, pwm);
@@ -314,7 +316,7 @@ void menu_lowlevel_pwm()
             }
             driver_A->pwmSet(port, (uint8_t)pwm);
 #if B_SIDE == 1
-        } else if (pwm >= 0 && pwm <= 255 && port >= 24 && port < 48 ) {
+        } else if (pwm >= 0 && pwm <= 255 && port >= 24 && port < B_SIDE_OUTS + 24 ) {
             if (debug_on) {
                 char buf[64];
                 sprintf(buf, "OUT %i PWM %d", port, pwm);
@@ -387,12 +389,13 @@ void menu_lowlevel_oe()
 void menu_tools_connect()
 {
     // Copy IP from incoming packet
-    strncpy(master_address, const_cast<char*>(client_addr->get_ip_address()), 16 * sizeof(char));
+    // Temporary disabling the IP registering
+    // strncpy(master_address, const_cast<char*>(client_addr->get_ip_address()), 16 * sizeof(char));
 
     // RE-assign socket with the new address
     // See if it's necessary ?
-    delete client_addr;
-    client_addr = new SocketAddress;
+    // delete client_addr;
+    // client_addr = new SocketAddress;
 
     debug_OSC("CONNECTION OK");
     if (debug_on)
@@ -527,29 +530,53 @@ void menu_midi()
         int intensity = tosc_getNextInt32(p_osc);
 
         if (type != NULL) {
-            if (port >= 0 && port < 24 ) {
-                if (type == "note_off") {
-                    driver_A->coilOff(port - 36);
+            if (port >= IF_BASENOTE && port < IF_BASENOTE + A_SIDE_OUTS) {
+                port = port - IF_BASENOTE;
+                // First "standard" : note_off when released
+                if (strcmp("note_off", type) == 0) {
+                    driver_A->coilOff(port);
                     if (debug_on) {
                         char buf[64];
                         sprintf(buf, "%s\n", type);
-                        //sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_A->outRegister.reg_readUser(port));
+                        sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_A->outRegister.reg_readUser(port));
                         debug_OSC(buf);
                     }
-                } else if (type == "note_on") {
-                    driver_A->coilOn(port - 36);
+                // Second "standard" : velocity == 0 when released
+                } else if (strcmp("note_on", type) == 0) {
+                    if (intensity == 0) {
+                        driver_A->coilOff(port);
+                        if (debug_on) {
+                            char buf[64];
+                            sprintf(buf, "%s\n", type);
+                            sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_A->outRegister.reg_readUser(port));
+                            debug_OSC(buf);
+                        }
+                    } else {
+                        driver_A->coilOn(port);
+                    }
                 }
 #if B_SIDE == 1
-            } else if (port >= 24 && port < 48 ) {
-                if (type == "note_off") {
+            } else if (port >= IF_BASENOTE + 24 && port < IF_BASENOTE + B_SIDE_OUTS + 24) {
+                port = port - IF_BASENOTE;
+                if (strcmp("note_off", type) == 0) {
                     driver_B->coilOff(port - 24);
                     if (debug_on) {
                         char buf[64];
                         sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_B->outRegister.reg_readUser(port - 24));
                         debug_OSC(buf);
                     }
-                } else if (type == "note_on") {
+                } else if (strcmp("note_on", type) == 0) {
+                    if (intensity == 0) {
+                        driver_B->coilOff(port - 24);
+                        if (debug_on) {
+                            char buf[64];
+                            sprintf(buf, "%s\n", type);
+                            sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_B->outRegister.reg_readUser(port - 24));
+                            debug_OSC(buf);
+                        }
+                    } else {
                     driver_B->coilOn(port - 24);
+                    }
                 }
 #endif
             }

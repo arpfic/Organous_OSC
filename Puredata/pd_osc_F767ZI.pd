@@ -1,4 +1,4 @@
-#N canvas 511 59 855 709 10;
+#N canvas 470 96 886 672 10;
 #X obj 6 416 notein;
 #X floatatom 6 438 5 0 0 0 - - -;
 #X floatatom 52 437 5 0 0 0 - - -;
@@ -10,7 +10,7 @@
 #X obj 263 416 midiin;
 #X floatatom 263 438 0 0 0 0 - - -;
 #X floatatom 296 438 0 0 0 0 - - -;
-#N canvas 185 166 1024 486 osc_interface 1;
+#N canvas 185 166 1024 486 osc_interface 0;
 #X obj 442 105 cnv 15 100 60 empty empty empty 20 12 0 10 -262144 -1
 0;
 #X obj 17 18 inlet connect;
@@ -38,7 +38,7 @@ connections.;
 #X obj 473 479 udpsend;
 #X msg 473 456 disconnect;
 #X obj 207 126 tgl 15 0 empty empty 1=connected 20 8 0 8 -4034 -257985
--1 1 1;
+-1 0 1;
 #X obj 1099 144 + 1;
 #X obj 831 144 + 1;
 #X msg 784 220 0;
@@ -283,7 +283,7 @@ ce que reçoit et envoie la carte., f 61;
 #X connect 28 0 26 0;
 #X coords 0 -1 1 1 360 86 2 100 100;
 #X restore 455 21 pd tools_commands;
-#N canvas 400 1340 1200 606 lowlevel_commands 0;
+#N canvas 470 96 886 672 lowlevel_commands 1;
 #X obj 403 101 cnv 15 100 60 empty empty LOWLEVEL_commands 20 12 0
 12 -262144 -1 0;
 #X obj 543 614 outlet;
@@ -379,6 +379,21 @@ période et le ratio.;
 #X obj -173 73 t b a;
 #X obj -173 97 t b a;
 #X obj 477 281 ctlin 1;
+#X floatatom 901 234 0 0 0 0 - - -;
+#X obj 855 207 touchin;
+#X text 848 167 channel aftertouch, f 10;
+#X obj 934 285 hsl 64 15 0 1 0 0 empty empty PWM_ratio -2 -8 0 10 -261234
+-1 -1 0 0;
+#X floatatom 931 303 5 0 0 0 - - -;
+#X text 929 250 OE;
+#X obj 930 375 symbol;
+#X obj 930 399 pack s f f;
+#X obj 930 444 s lowlevel_outlet;
+#X msg 930 352 /suraig/ll/oe;
+#X obj 930 329 t b a;
+#X msg 930 422 sendtyped \$1 ff \$2 0.075;
+#X obj 929 171 map 0 127 1 0, f 14;
+#X obj 929 194 print;
 #X connect 2 0 3 0;
 #X connect 2 0 65 0;
 #X connect 5 0 1 0;
@@ -456,16 +471,28 @@ période et le ratio.;
 #X connect 71 0 59 0;
 #X connect 71 1 51 1;
 #X connect 72 0 62 0;
+#X connect 74 0 85 0;
+#X connect 74 1 73 0;
+#X connect 76 0 77 0;
+#X connect 76 0 83 0;
+#X connect 79 0 80 0;
+#X connect 80 0 84 0;
+#X connect 82 0 79 0;
+#X connect 83 0 82 0;
+#X connect 83 1 80 1;
+#X connect 84 0 81 0;
+#X connect 85 0 86 0;
+#X connect 85 0 76 0;
 #X coords 0 -1 1 1 444 226 2 100 100;
 #X restore 403 156 pd lowlevel_commands;
-#N canvas 488 96 858 672 main_commands 0;
+#N canvas 468 96 858 672 main_commands 0;
 #X obj 354 101 cnv 15 100 60 empty empty MAIN_commands 20 12 0 12 -262144
 -1 0;
 #X obj 16 551 bendin;
 #X obj 17 749 outlet;
 #X obj 17 728 r main_outlet;
-#X obj 105 136 nbx 3 14 0 47 0 0 empty empty sortie 0 -8 0 10 -4034
--1 -1 2 256;
+#X obj 105 136 nbx 3 14 0 127 0 0 empty empty sortie 0 -8 0 10 -4034
+-1 -1 0 256;
 #X obj 146 136 nbx 3 14 0 255 0 0 empty empty vélocité 0 -8 0 10
 -261234 -1 -1 0 256;
 #X text 103 102 COIL;

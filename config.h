@@ -24,7 +24,11 @@
 #define IF_OSC_NAME                             "suraig"
 #define SOFT_VER                                "v0.2"
 // Is the B_SIDE card present or only A_SIDE ?
-#define B_SIDE                                  0
+#define B_SIDE                                  1
+#define A_SIDE_OUTS                             24
+#define B_SIDE_OUTS                             18
+// Midi compatibility, i.e. from wich octave we begin
+#define IF_BASENOTE                             79
 
 /* -----------------------------------------------------------------------------
  * NUCLEO_F767ZI LEDS
@@ -42,7 +46,7 @@
 #define COIL_ATTACK_DELAY                       20
 #define COIL_ATTACK                             255
 //#define COIL_SUSTAIN                            (uint8_t)153
-#define COIL_SUSTAIN                            (uint8_t)200
+#define COIL_SUSTAIN                            (uint8_t)230
 
 /* -----------------------------------------------------------------------------
  * OSC and BUFFER STUFF :
