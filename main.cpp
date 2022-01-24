@@ -17,6 +17,8 @@
     THE SOFTWARE.
 */
 #include "main.h"
+#include "MIDIMessage.h"
+#include "ThisThread.h"
 #include "main_debug.h"
 #include "menu.h"
 
@@ -53,6 +55,8 @@ static void receive_udp_message()
                 new_packet->size = mainpacket_length;
                 // ... then inject it to Circularbuffer
                 socketpacket_buf.push(new_packet);
+                // The Thread needs to wake up !
+                oscTask.flags_set(0x1);
             }
         } else if (mainpacket_length != NSAPI_ERROR_WOULD_BLOCK) {
             // Error while receiving
@@ -101,7 +105,8 @@ static void send_UDPmsg(char* incoming_msg, int in_length)
 void button_pressed()
 {
     led_red = 1;
-    queue_msg.call(init_msgON);
+    if (eth->get_connection_status() == NSAPI_STATUS_GLOBAL_UP)
+        queue_msg.call(init_msgON);
 }
 
 void button_released()
@@ -146,92 +151,11 @@ void driver_B_error_handler()
     led_red = 1;
 }
 
-/* MAIN function
- */
-int main()
-{
-    // Init master_address IP client to broadcast for convenience
-    master_address = (char *)malloc(16 * sizeof(char));
-    sprintf(master_address, "255.255.255.255");
-
-    // Init homemade CoilDriver class
-    driver_A = new CoilDriver(PCA_A_SDA, PCA_A_SCL, PCA_A_OE, DRV_A_RST,
-                              DRV_A_FAULT, driver_a_table, i2c_err_callback, A_SIDE_I2C_TAG);
-    // Set-up driver_A error feedbacks with PinDetect
-    driver_A->drv_fault.attach_asserted_held(queue_msg.event(driver_A_error_handler));
-    driver_A->drv_fault.setSamplesTillHeld(20);
-    driver_A->drv_fault.setAssertValue(0);
-    driver_A->drv_fault.setSampleFrequency();
-#if B_SIDE == 1
-    driver_B = new CoilDriver(PCA_B_SDA, PCA_B_SCL, PCA_B_OE, DRV_B_RST,
-                              DRV_B_FAULT, driver_b_table, i2c_err_callback, B_SIDE_I2C_TAG);
-    driver_B->drv_fault.attach_asserted_held(queue_msg.event(driver_B_error_handler));
-    driver_B->drv_fault.setSamplesTillHeld(20);
-    driver_B->drv_fault.setAssertValue(0);
-    driver_B->drv_fault.setSampleFrequency();
-#endif
-
-    // Set-up button
-    button.fall(&button_released);
-    button.rise(&button_pressed);
-
-    // Set-up EthernetInterface in DHCP mode
-    eth = new EthernetInterface;
-    nsapi_error_t status;
-    status = eth->connect();
-    if (status != NSAPI_ERROR_OK) {
-        led_red = 1;
-    }
-    // Attach to status callback
-    eth->attach(&eth_status_callback);
-
-    // Set-up UDPSocket udp_socket because OSC IS in UDP.
-    udp_socket = new UDPSocket;
-    udp_socket->set_blocking(false);
-    status = udp_socket->open(eth);
-    if (status != NSAPI_ERROR_OK) {
-        led_red = 1;
-    }
-    // Bind UDPSocket to the OSC_CLIENT_PORT.
-    while(udp_socket->bind(OSC_CLIENT_PORT) != 0);
-
-    // Callback ANY packet to handle_socket() -- here is the main magic function.
-    udp_socket->sigio(callback(handle_udp_socket));
-
-    // Set-up SocketAddresses
-    ip = new SocketAddress;
-    client_addr = new SocketAddress;
-
-    /* At this step we are "On the Air", so we can dend up a welcome message to
-     * broadcast. We can communicate in both sides with BROADCAST address, but it's
-     * important to connect each others with more intimity, because :
-     * more intimity == more efficiency
-     */
-    eth->get_ip_address(ip);
-
-    init_msgON();
-
-    // (not so) BROKEN tone function : precompute 128 sample points on one sine wave cycle
-    // used for continuous sine wave output later
-    for(int i=0; i<128; i++) {
-        sinusoid_data[i]=((1.0 + sin((float(i)/128.0*6.28318530717959)))/2.0);
-    }
-
-    // Dispatch forever the queue in a thread :
-    thrd_io.start(callback(&queue_io, &EventQueue::dispatch_forever));
-    thrd_msg.start(callback(&queue_msg, &EventQueue::dispatch_forever));
-    // Later, we have to find the best priority
-    thrd_io.set_priority(osPriorityRealtime);
-
-    // DEBUG
-    // sys_state.report_state();
-
-    while(true) {
-        //	queue.dispatch_forever();
-        // Not even sleep !
-
-        /* Here we realy decode OSC messages -- and we parse addr to menu subfunctions
-        */
+void osc_task(){
+    /* Here we realy decode OSC messages -- and we parse addr to menu subfunctions
+    */
+    while (1) {
+        ThisThread::flags_wait_any(0x1);
         while (!socketpacket_buf.empty()) {
             // Test if we are full
             if (socketpacket_buf.full())
@@ -278,8 +202,226 @@ int main()
             } else {
                 led_red = !led_red;
             }
-	    // Delete memory allocation
-            delete_array(packet);
+    // Delete memory allocation
+        delete_array(packet);
         }
+    }
+}
+
+
+void midiNextByte_timer(){
+    if (rx_midi_outbox->midiPacketlenght > 1){ // already parsed in MIDIMessage.type()
+        // send the previous paquet to mailbox
+        rx_midiPacket_box.put(rx_midi_outbox);
+        // create the next paquet
+        rx_midi_outbox = rx_midiPacket_box.alloc();
+        rx_midi_outbox->midiPacketlenght = 0;
+    }
+    return;
+}
+
+
+// Interupt Routine to read in data from serial port
+void on_rx_interrupt() {
+
+    uint8_t c; 
+    while ((midi_din.readable()) && rx_midi_outbox->midiPacketlenght < MIDI_MAX_MSG_LENGTH) {
+        // detach_first
+        midiNextByte.detach();
+        // let's poop
+        c = midi_din.getc();
+        if (((c >> 7) & 0x1) == 1){ // Statut byte ?
+            if (rx_midi_outbox->midiPacketlenght == 0) { // Already created by midiNextByte_timer() or at startup
+                // write the first statut byte
+                rx_midi_outbox->midiPacket[0] = c;
+            } else {
+                // send the previous paquet to mailbox
+                rx_midiPacket_box.put(rx_midi_outbox);
+                // create the next paquet
+                rx_midi_outbox = rx_midiPacket_box.alloc();
+                // write the first statut byte
+                rx_midi_outbox->midiPacket[0] = c;
+            }
+            rx_midi_outbox->midiPacketlenght = 1;
+            // next, attach
+            midiNextByte.attach_us(midiNextByte_timer, MIDI_PAQUET_TIME_US);
+            // The Thread needs to wake up !
+            midiTask.flags_set(0x1);
+        } else if (rx_midi_outbox->midiPacketlenght > 0){ // Never write a non MIDI statut byte on [0]
+            // write into the paquet
+            rx_midi_outbox->midiPacket[rx_midi_outbox->midiPacketlenght] = c;
+            // increment paquet
+            rx_midi_outbox->midiPacketlenght++;
+            // next, attach
+            midiNextByte.attach_us(midiNextByte_timer, MIDI_PAQUET_TIME_US);
+            // The Thread needs to wake up !
+            midiTask.flags_set(0x1);
+        } else { // garbage (???)
+            led_red = !led_red;
+        }
+    }
+    return;
+}
+
+void midi_task() {
+    midi_din.baud(31250);
+
+    // create the first paquet
+    rx_midi_outbox = rx_midiPacket_box.alloc();
+    rx_midi_outbox->midiPacketlenght = 0;
+
+    // Register a callback to process a Rx (receive) interrupt.
+    midi_din.attach(&on_rx_interrupt, SerialBase::RxIrq);
+
+    while (1) {
+        ThisThread::flags_wait_any(0x1);
+        
+        osEvent midi_evt = rx_midiPacket_box.get(0);
+
+        if (midi_evt.status == osEventMail) {
+            midiPacket_t *midi_inbox = (midiPacket_t *)midi_evt.value.p;
+
+            MIDIMessage MIDIMsg;
+            MIDIMsg.from_raw(midi_inbox->midiPacket, midi_inbox->midiPacketlenght);
+            switch (MIDIMsg.type()) {
+                case MIDIMessage::NoteOffType:
+                    menu_main_midi_noteOff(MIDIMsg.key());
+                    break;
+                case MIDIMessage::NoteOnType:
+                    if (MIDIMsg.length > 3) {
+                        if (MIDIMsg.velocity() > 0) {
+                            menu_main_midi_noteOn(MIDIMsg.key(), MIDIMsg.velocity());
+                        } else {
+                            menu_main_midi_noteOff(MIDIMsg.key());
+                        }
+                    } else {
+                        menu_main_midi_noteOn_min(MIDIMsg.key());
+                    }
+                    break;
+                case MIDIMessage::AllNotesOffType:
+                    menu_main_midi_allnoteOff();
+                    break;
+                case MIDIMessage::ResetAllControllersType:
+                    menu_tools_softreset();
+                    break;
+                case MIDIMessage::ControlChangeType:
+                    break;
+                case MIDIMessage::PitchWheelType:
+                    break;
+                case MIDIMessage::SysExType:
+                    break;
+                case MIDIMessage::ErrorType:
+                    break;
+                default:
+                    break;
+            }
+            rx_midiPacket_box.free(midi_inbox);
+        }
+    }
+}
+
+/* MAIN function
+ */
+int main()
+{
+    // Init master_address IP client to broadcast for convenience
+    master_address = (char *)malloc(16 * sizeof(char));
+    sprintf(master_address, "255.255.255.255");
+
+    // Init homemade CoilDriver class
+    driver_A = new CoilDriver(PCA_A_SDA, PCA_A_SCL, PCA_A_OE, DRV_A_RST,
+                              DRV_A_FAULT, driver_a_table, i2c_err_callback, A_SIDE_I2C_TAG);
+    // Set-up driver_A error feedbacks with PinDetect
+    driver_A->drv_fault.attach_asserted_held(queue_msg.event(driver_A_error_handler));
+    driver_A->drv_fault.setSamplesTillHeld(20);
+    driver_A->drv_fault.setAssertValue(0);
+    driver_A->drv_fault.setSampleFrequency();
+#if B_SIDE == 1
+    driver_B = new CoilDriver(PCA_B_SDA, PCA_B_SCL, PCA_B_OE, DRV_B_RST,
+                              DRV_B_FAULT, driver_b_table, i2c_err_callback, B_SIDE_I2C_TAG);
+    driver_B->drv_fault.attach_asserted_held(queue_msg.event(driver_B_error_handler));
+    driver_B->drv_fault.setSamplesTillHeld(20);
+    driver_B->drv_fault.setAssertValue(0);
+    driver_B->drv_fault.setSampleFrequency();
+#endif
+
+    // Set-up button
+    button.fall(&button_released);
+    button.rise(&button_pressed);
+
+    // Launch MIDI stuf
+    midiTask.start(midi_task);
+    midiTask.set_priority(osPriorityAboveNormal);
+
+    // Set-up EthernetInterface in DHCP mode
+    nsapi_error_t status;
+    eth = new EthernetInterface;
+    eth->set_blocking(false);
+    eth->connect();
+    ThisThread::sleep_for(1000);
+
+    while (eth->get_connection_status() != NSAPI_STATUS_GLOBAL_UP) {
+        status = eth->connect();
+        led_red = 1;
+        ThisThread::sleep_for(1000);
+    }
+
+    //OK
+    led_red = 0;
+
+    // Attach to status callback
+    eth->attach(&eth_status_callback);
+
+    // Set-up UDPSocket udp_socket because OSC IS in UDP.
+    udp_socket = new UDPSocket;
+    udp_socket->set_blocking(false);
+    status = -1;
+    status = udp_socket->open(eth);
+
+    if (status != NSAPI_ERROR_OK) {
+        led_red = 1;
+    }
+    // Bind UDPSocket to the OSC_CLIENT_PORT.
+    while(udp_socket->bind(OSC_CLIENT_PORT) != 0);
+
+    // Callback ANY packet to handle_socket() -- here is the main magic function.
+    udp_socket->sigio(callback(handle_udp_socket));
+
+    // Set-up SocketAddresses
+    ip = new SocketAddress;
+    client_addr = new SocketAddress;
+
+    /* At this step we are "On the Air", so we can dend up a welcome message to
+    * broadcast. We can communicate in both sides with BROADCAST address, but it's
+    * important to connect each others with more intimity, because :
+    * more intimity == more efficiency
+    */
+    eth->get_ip_address(ip);
+
+    init_msgON();
+
+    // Dispatch forever the queue in a thread :
+    thrd_io.start(callback(&queue_io, &EventQueue::dispatch_forever));
+    thrd_msg.start(callback(&queue_msg, &EventQueue::dispatch_forever));
+    // Later, we have to find the best priority
+    thrd_io.set_priority(osPriorityAboveNormal1);
+
+    // Launch OSC stuf
+    oscTask.start(osc_task);
+    oscTask.set_priority(osPriorityAboveNormal);
+
+    // (not so) BROKEN tone function : precompute 128 sample points on one sine wave cycle
+    // used for continuous sine wave output later
+    for(int i=0; i<128; i++) {
+        sinusoid_data[i]=((1.0 + sin((float(i)/128.0*6.28318530717959)))/2.0);
+    }
+
+    // DEBUG
+    // sys_state.report_state();
+
+    while(true) {
+        // queue.dispatch_forever();
+        // Not even sleep !
+        ThisThread::sleep_for(1000);
     }
 }

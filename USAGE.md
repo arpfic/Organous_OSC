@@ -2,6 +2,11 @@
 
 ### MAIN commands
 
+#### MIDI msg : NoteOffType
+#### MIDI msg : NoteOnType
+#### MIDI msg : ResetAllControllersType
+#### MIDI msg : AllNotesOffType
+
 #### OSC msg  : /main/coil ii PORT INTENSITY
  * Purpose   : drive coilOn/coilOff functions
  * Note      : For now, INTENSITY is almost useless : we just launch coilOff if == 0

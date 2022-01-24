@@ -118,7 +118,8 @@ static void debug_OSC(const char* incoming_msg)
     char buffer[MAX_PQT_SENDLENGTH];
     int out_length = 0;
 
-    if (strlen(incoming_msg) < MAX_PQT_SENDLENGTH) {
+    if (strlen(incoming_msg) < MAX_PQT_SENDLENGTH &&
+                eth->get_connection_status() == NSAPI_STATUS_GLOBAL_UP) {
         out_length = debug_OSCwrite((char *)incoming_msg, buffer);
         send_UDPmsg(buffer, out_length);
     }

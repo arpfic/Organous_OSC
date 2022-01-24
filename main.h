@@ -35,6 +35,8 @@
 #include "main_driver_hal.h"
 #include "PCA9956A.h"
 #include "tOSC.h"
+#include "MemoryPool.h"
+#include "MIDIMessage.h"
 
 // UDPSocket/TCPSocket Callbacks
 static void handle_udp_socket();
@@ -64,6 +66,18 @@ int main();
 // Callback to /main/tone OSC BROKEN function.
 void sampler_timer();
 
+// Regrouping OSC task in a Thread
+void osc_task();
+
+// MIDI Timer function
+void midiNextByte_timer();
+
+// Callback for MIDI RX
+void on_rx_interrupt();
+
+// Regrouping MIDI task in a Thread
+void midi_task();
+
 /* -----------------------------------------------------------------------------
  * MAIN objects, enum etc.
  */
@@ -76,18 +90,19 @@ DigitalOut driver_a_table[ENABLE_PINS] = {
 DRV_EN9,  DRV_EN10, DRV_EN11, DRV_EN12, DRV_EN13, DRV_EN14, DRV_EN15, DRV_EN16,
 DRV_EN17, DRV_EN18, DRV_EN19, DRV_EN20, DRV_EN21, DRV_EN22, DRV_EN23, DRV_EN24
     };
-
+#if B_SIDE == 1
 DigitalOut driver_b_table[ENABLE_PINS] = {
     DRV_EN25, DRV_EN26, DRV_EN27, DRV_EN28, DRV_EN29, DRV_EN30, DRV_EN31, DRV_EN32,
 DRV_EN33, DRV_EN34, DRV_EN35, DRV_EN36, DRV_EN37, DRV_EN38, DRV_EN39, DRV_EN40,
 DRV_EN41, DRV_EN42, DRV_EN43, DRV_EN44, DRV_EN45, DRV_EN46, DRV_EN47, DRV_EN48
     };
+#endif
 
 // Basic I/O objects
 DigitalOut  led_green(LED_GREEN);
 DigitalOut  led_blue(LED_BLUE);
 DigitalOut  led_red(LED_RED);
-InterruptIn button(USER_BUTTON);
+InterruptIn button(PC_13);// USER_BUTTON
 
 // DEBUG Stats
 #define SLEEP_TIME                  100 // (msec)
@@ -100,6 +115,8 @@ UDPSocket           *udp_socket;
 SocketAddress       *ip;
 SocketAddress       *client_addr;
 
+Thread oscTask;
+
 /* NET I/O queue and thread : it's important to be always available to incoming
  * packets
  */
@@ -108,9 +125,11 @@ EventQueue queue_io(QUEUE_IO_EVENTS * EVENTS_EVENT_SIZE);
 Thread thrd_msg;
 Thread thrd_io;
 
-// SameThread but for (hopefully not so often) DRV8844 errors
+// Same Thread but for (hopefully not so often) DRV8844 errors
 Thread *thread_errA;
+#if B_SIDE == 1
 Thread *thread_errB;
+#endif
 
 // Pointer to OSC packet/message
 tosc_message* p_osc;
@@ -133,6 +152,24 @@ char*   master_address;
 
 // Is debug on or off by OSC /tools/debug ?
 char    debug_on = 0;
+
+// MIDI Serial & Thread and Ticker for working with different packet lengths
+static RawSerial midi_din(PB_4, PE_7);
+Thread midiTask;
+Ticker midiNextByte;
+
+/* Mailbox of MIDI Packets */
+typedef struct {
+    uint8_t    midiPacket[MIDI_MAX_MSG_LENGTH]; /* AD result of measured voltage */
+    int        midiPacketlenght = 0;
+} midiPacket_t;
+Mail<midiPacket_t, 128>  rx_midiPacket_box;
+midiPacket_t            *rx_midi_outbox;
+
+// MIDI variables
+volatile int            rx_idx = 0;
+uint8_t                 rx_buffer[MIDI_MAX_MSG_LENGTH + 1];
+
 
 // BROKEN : little sampler ticker/timer (beta)
 volatile int k = 0;

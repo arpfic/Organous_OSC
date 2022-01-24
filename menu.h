@@ -24,6 +24,11 @@ void menu_lowlevel();
 void menu_tools();
 void menu_midi();
 
+void menu_main_midi_noteOn(int port, int intensity);
+void menu_main_midi_noteOn_min(int port);
+void menu_main_midi_noteOff(int port);
+void menu_main_midi_allnoteOff();
+
 void menu_main_coil();
 void menu_main_motor();
 void menu_main_motor_brake();
@@ -92,6 +97,53 @@ menu_cases tools_cases [] = {
  * MENU OSC Parser : HERE WE ACT !
  */
 
+/* NOTE     : COIL FUNCTIONS, MODIFIED TO SUPPORT MIDI
+ */
+void menu_main_midi_noteOn(int port, int intensity){
+    menu_main_midi_noteOn_min(port);
+}
+
+void menu_main_midi_noteOn_min(int port){
+    if (port >= IF_BASENOTE && port < IF_BASENOTE + A_SIDE_OUTS) {
+        port = port - IF_BASENOTE;
+        driver_A->coilOn(port);
+#if B_SIDE == 1
+    } else if (port >= IF_BASENOTE + 24 && port < IF_BASENOTE + B_SIDE_OUTS + 24) {
+        port = port - IF_BASENOTE;
+        driver_B->coilOn(port - 24);
+#endif
+    }
+}
+
+void menu_main_midi_noteOff(int port){
+    if (port >= IF_BASENOTE && port < IF_BASENOTE + A_SIDE_OUTS) {
+        port = port - IF_BASENOTE;
+        driver_A->coilOff(port);
+        if (debug_on) {
+            char buf[64];
+            sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_A->outRegister.reg_readUser(port));
+            debug_OSC(buf);
+        }
+#if B_SIDE == 1
+    } else if (port >= IF_BASENOTE + 24 && port < IF_BASENOTE + B_SIDE_OUTS + 24) {
+        port = port - IF_BASENOTE;
+        driver_B->coilOff(port - 24);
+        if (debug_on) {
+            char buf[64];
+            sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_B->outRegister.reg_readUser(port - 24));
+            debug_OSC(buf);
+        }
+#endif
+    }
+}
+
+void menu_main_midi_allnoteOff(){
+    driver_A->forceoff(ALLPORTS);
+#if B_SIDE == 1
+    driver_B->forceoff(ALLPORTS);
+#endif
+}
+
 /* OSC msg  : /main/coil ii PORT INTENSITY
  * Purpose  : drive coilOn/coilOff functions
  * Note     : For now, INTENSITY is almost useless : we just launch coilOff if == 0
@@ -105,11 +157,6 @@ void menu_main_coil()
             port = port - IF_BASENOTE;
             if (intensity == 0) {
                 driver_A->coilOff(port);
-                if (debug_on) {
-                    char buf[64];
-                    sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_A->outRegister.reg_readUser(port));
-                    debug_OSC(buf);
-                }
             } else {
                 driver_A->coilOn(port);
             }
@@ -118,11 +165,6 @@ void menu_main_coil()
             port = port - IF_BASENOTE;
             if (intensity == 0) {
                 driver_B->coilOff(port - 24);
-                if (debug_on) {
-                    char buf[64];
-                    sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_B->outRegister.reg_readUser(port - 24));
-                    debug_OSC(buf);
-                }
             } else {
                 driver_B->coilOn(port - 24);
             }
@@ -456,6 +498,7 @@ void menu_tools_softreset()
     // Blink for fun
     led_green = led_blue = led_red = 1;
     debug_OSC("RESET STATES...");
+    debug_count = 0;
     // Ticker destruct
     sample_ticker.detach();
     // Set All enables to 0
@@ -506,15 +549,15 @@ void menu_tools_count()
 {
     if (p_osc->format[0] == 'i') {
         int i = tosc_getNextInt32(p_osc);
-		debug_smallcount = debug_smallcount + i;
+		//debug_smallcount = debug_smallcount + i;
         debug_count = debug_count + i;
     }
-	if (debug_smallcount > 99) {
+	//if (debug_smallcount > 99) {
 		char buffer[MAX_PQT_SENDLENGTH];
 		sprintf(buffer, "%ld", debug_count);
 		debug_OSC(buffer);
-		debug_smallcount = 0;
-	}
+		//debug_smallcount = 0;
+	//}
 }
 
 /* OSC msg  : /main/coil ii PORT INTENSITY

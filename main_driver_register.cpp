@@ -130,7 +130,7 @@ int DrvRegister::reg_writeEnable(int port, bool enable){
     }
 }
 
-// Return VALUE on the current user, and -1 if error
+// Write VALUE to the current user. Return value if ok and -1 if error
 int DrvRegister::reg_writeValue(int port, int value){
     // bit writing game
     if (reg.users[port] > 0 && reg.users[port] < OUT_MAXUSERS && value < 256 && port >= 0 && port < ENABLE_PINS){
