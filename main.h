@@ -154,7 +154,7 @@ char*   master_address;
 char    debug_on = 0;
 
 // MIDI Serial & Thread and Ticker for working with different packet lengths
-static RawSerial midi_din(PB_4, PE_7);
+static RawSerial midi_din(MIDI_UART_TX, MIDI_UART_RX);
 Thread midiTask;
 Ticker midiNextByte;
 

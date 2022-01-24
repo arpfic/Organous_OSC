@@ -221,6 +221,8 @@
 /* -----------------------------------------------------------------------------
  * MIDI stuf
  */
+#define MIDI_UART_TX                            PB_4
+#define MIDI_UART_RX                            PE_7
 #define MIDI_MAX_MSG_LENGTH                     5 // Max message size. SysEx can be up to 65536.
 #define MIDI_PAQUET_TIME_US                     (us_timestamp_t)500
 

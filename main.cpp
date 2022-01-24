@@ -275,6 +275,9 @@ void midi_task() {
 
     while (1) {
         ThisThread::flags_wait_any(0x1);
+
+        if (rx_midiPacket_box.full())
+            debug_OSC("Mailbox full : please slow down the flow !");
         
         osEvent midi_evt = rx_midiPacket_box.get(0);
 
