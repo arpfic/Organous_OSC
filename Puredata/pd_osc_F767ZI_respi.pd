@@ -1,4 +1,4 @@
-#N canvas 840 321 874 472 10;
+#N canvas 739 312 874 472 10;
 #X obj 6 416 notein;
 #X floatatom 6 438 5 0 0 0 - - -;
 #X floatatom 52 437 5 0 0 0 - - -;
@@ -234,7 +234,7 @@ delay it until the time occurs;
 -1 -1;
 #X obj 294 589 outlet;
 #X obj 216 105 tgl 15 0 empty empty -DEBUG 17 7 0 10 -4160 -262144
--1 0 1;
+-1 1 1;
 #X floatatom 206 105 1 0 0 0 - - -;
 #X obj 91 259 s tools_outlet;
 #X obj 294 565 r tools_outlet;
@@ -337,7 +337,7 @@ ce que reçoit et envoie la carte., f 61;
 12 -262144 -1 0;
 #X obj 373 604 outlet;
 #X obj 242 204 hsl 64 15 0 255 0 0 empty empty ratio -2 -8 0 10 -261234
--1 -1 0 0;
+-1 -1 4500 0;
 #X floatatom 239 222 5 0 0 0 - - -;
 #X floatatom 148 222 4 0 0 2 - - -;
 #X obj 373 583 r lowlevel_outlet;
@@ -361,11 +361,11 @@ ce que reçoit et envoie la carte., f 61;
 #X obj 105 13 r pdreset;
 #X floatatom 105 36 5 0 0 0 - - -;
 #X obj 108 285 hsl 64 15 0 1 0 0 empty empty PWM_ratio -2 -8 0 10 -261234
--1 -1 0 0;
+-1 -1 6200 0;
 #X floatatom 105 303 5 0 0 0 - - -;
 #X text 103 250 OE;
 #X obj 182 285 hsl 128 15 0.01 10 1 0 empty empty période_(sec) -2
--8 0 10 -261234 -1 -1 0 0;
+-8 0 10 -261234 -1 -1 1000 0;
 #X floatatom 179 303 5 0 0 0 - - -;
 #X text -30 581 DESCRIPTION :;
 #X text 422 122 commandes de bas- niveau à utiliser pour des montages
@@ -449,7 +449,7 @@ période et le ratio.;
 #X obj 398 202 bng 15 250 50 0 empty empty -RAN_TEST_NOTES 17 7 0 10
 -262144 -1 -1;
 #X obj 399 237 nbx 6 14 1 100000 0 0 empty empty nb 0 -8 0 10 -4034
--1 -1 2000 256;
+-1 -1 1 256;
 #X msg 823 682 stop;
 #X obj 469 237 nbx 4 14 1 1000 0 0 empty empty delay 0 -8 0 10 -4034
 -1 -1 1 256;
@@ -625,7 +625,7 @@ période et le ratio.;
 -1 -1 0 256;
 #X text 104 252 MOTOR;
 #X obj 195 286 hsl 64 15 -255 255 0 0 empty empty ratio -2 -8 0 10
--261234 -1 -1 0 0;
+-261234 -1 -1 3150 0;
 #X floatatom 192 304 5 0 0 0 - - -;
 #X text 371 122 série de commandes de haut niveau pour des usages
 variés., f 18;

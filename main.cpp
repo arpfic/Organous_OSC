@@ -21,6 +21,7 @@
 #include "ThisThread.h"
 #include "main_debug.h"
 #include "menu.h"
+#include <cstdlib>
 
 // Handlers
 static void handle_udp_socket()
@@ -210,57 +211,75 @@ void osc_task(){
 
 
 void midiNextByte_timer(){
-    if (rx_midi_outbox->midiPacketlenght > 1){ // already parsed in MIDIMessage.type()
+    if (rx_midi_outbox->midiPacketlenght > 1 && packetbox_full != 1){ // already parsed in MIDIMessage.type()
         // send the previous paquet to mailbox
         rx_midiPacket_box.put(rx_midi_outbox);
         // create the next paquet
         rx_midi_outbox = rx_midiPacket_box.alloc();
-        rx_midi_outbox->midiPacketlenght = 0;
+        if (rx_midi_outbox != NULL){
+            rx_midi_outbox->midiPacketlenght = 0;
+        } else {
+            led_red = !led_red;
+            packetbox_full = 1;
+        }
+        // The Thread needs to wake up !
+        midiTask.flags_set(0x1);
     }
     return;
 }
 
 
-// Interupt Routine to read in data from serial port
 void on_rx_interrupt() {
+    uint8_t c;
 
-    uint8_t c; 
     while ((midi_din.readable()) && rx_midi_outbox->midiPacketlenght < MIDI_MAX_MSG_LENGTH) {
-        // detach_first
-        midiNextByte.detach();
         // let's poop
         c = midi_din.getc();
-        if (((c >> 7) & 0x1) == 1){ // Statut byte ?
-            if (rx_midi_outbox->midiPacketlenght == 0) { // Already created by midiNextByte_timer() or at startup
-                // write the first statut byte
-                rx_midi_outbox->midiPacket[0] = c;
-            } else {
-                // send the previous paquet to mailbox
-                rx_midiPacket_box.put(rx_midi_outbox);
-                // create the next paquet
-                rx_midi_outbox = rx_midiPacket_box.alloc();
-                // write the first statut byte
-                rx_midi_outbox->midiPacket[0] = c;
+
+        if (packetbox_full != 1) {
+            // detach_first
+            midiNextByte.detach();
+
+            if (((c >> 7) & 0x1) == 1) { // Statut byte ?
+                if (rx_midi_outbox->midiPacketlenght == 0) { // Already created by midiNextByte_timer() or at startup
+                    // write the first statut byte
+                    rx_midi_outbox->midiPacket[0] = c;
+                    rx_midi_outbox->midiPacketlenght = 1;
+                    // next, attach
+                    midiNextByte.attach_us(midiNextByte_timer, MIDI_PAQUET_TIME_US);
+                } else {
+                    // send the previous paquet to mailbox
+                    rx_midiPacket_box.put(rx_midi_outbox);
+                    // create the next paquet
+                    rx_midi_outbox = rx_midiPacket_box.alloc();
+
+                    if (rx_midi_outbox != NULL) {
+                        // write the first statut byte
+                        rx_midi_outbox->midiPacket[0] = c;
+                        rx_midi_outbox->midiPacketlenght = 1;
+                        // next, attach
+                        midiNextByte.attach_us(midiNextByte_timer, MIDI_PAQUET_TIME_US);
+                    } else {
+                        led_red = !led_red;
+                        packetbox_full = 1;
+                    }
+                    // The Thread needs to wake up !
+                    midiTask.flags_set(0x1);
+                }
+            } else if (rx_midi_outbox->midiPacketlenght > 0) { // Never write a non MIDI statut byte on [0]
+                // write into the paquet
+                rx_midi_outbox->midiPacket[rx_midi_outbox->midiPacketlenght] = c;
+                // increment paquet
+                rx_midi_outbox->midiPacketlenght++;
+                // next, attach
+                midiNextByte.attach_us(midiNextByte_timer, MIDI_PAQUET_TIME_US);
+            } else { // garbage (???)
+                led_red = !led_red;
             }
-            rx_midi_outbox->midiPacketlenght = 1;
-            // next, attach
-            midiNextByte.attach_us(midiNextByte_timer, MIDI_PAQUET_TIME_US);
-            // The Thread needs to wake up !
-            midiTask.flags_set(0x1);
-        } else if (rx_midi_outbox->midiPacketlenght > 0){ // Never write a non MIDI statut byte on [0]
-            // write into the paquet
-            rx_midi_outbox->midiPacket[rx_midi_outbox->midiPacketlenght] = c;
-            // increment paquet
-            rx_midi_outbox->midiPacketlenght++;
-            // next, attach
-            midiNextByte.attach_us(midiNextByte_timer, MIDI_PAQUET_TIME_US);
-            // The Thread needs to wake up !
-            midiTask.flags_set(0x1);
-        } else { // garbage (???)
+        } else {
             led_red = !led_red;
         }
     }
-    return;
 }
 
 void midi_task() {
@@ -276,9 +295,9 @@ void midi_task() {
     while (1) {
         ThisThread::flags_wait_any(0x1);
 
-        if (rx_midiPacket_box.full())
+        if (packetbox_full == 1 && debug_on)
             debug_OSC("Mailbox full : please slow down the flow !");
-        
+
         osEvent midi_evt = rx_midiPacket_box.get(0);
 
         if (midi_evt.status == osEventMail) {
@@ -286,39 +305,43 @@ void midi_task() {
 
             MIDIMessage MIDIMsg;
             MIDIMsg.from_raw(midi_inbox->midiPacket, midi_inbox->midiPacketlenght);
-            switch (MIDIMsg.type()) {
-                case MIDIMessage::NoteOffType:
-                    menu_main_midi_noteOff(MIDIMsg.key());
-                    break;
-                case MIDIMessage::NoteOnType:
-                    if (MIDIMsg.length > 3) {
-                        if (MIDIMsg.velocity() > 0) {
-                            menu_main_midi_noteOn(MIDIMsg.key(), MIDIMsg.velocity());
+
+            if (MIDIMsg.channel() == MIDI_CHANNEL - 1) {
+                switch (MIDIMsg.type()) {
+                    case MIDIMessage::NoteOffType:
+                        menu_main_midi_noteOff(MIDIMsg.key());
+                        break;
+                    case MIDIMessage::NoteOnType:
+                        if (MIDIMsg.length > 3) {
+                            if (MIDIMsg.velocity() > 0) {
+                                menu_main_midi_noteOn(MIDIMsg.key(), MIDIMsg.velocity());
+                            } else {
+                                menu_main_midi_noteOff(MIDIMsg.key());
+                            }
                         } else {
-                            menu_main_midi_noteOff(MIDIMsg.key());
+                            menu_main_midi_noteOn_min(MIDIMsg.key());
                         }
-                    } else {
-                        menu_main_midi_noteOn_min(MIDIMsg.key());
-                    }
-                    break;
-                case MIDIMessage::AllNotesOffType:
-                    menu_main_midi_allnoteOff();
-                    break;
-                case MIDIMessage::ResetAllControllersType:
-                    menu_tools_softreset();
-                    break;
-                case MIDIMessage::ControlChangeType:
-                    break;
-                case MIDIMessage::PitchWheelType:
-                    break;
-                case MIDIMessage::SysExType:
-                    break;
-                case MIDIMessage::ErrorType:
-                    break;
-                default:
-                    break;
+                        break;
+                    case MIDIMessage::AllNotesOffType:
+                        menu_main_midi_allnoteOff();
+                        break;
+                    case MIDIMessage::ResetAllControllersType:
+                        menu_tools_softreset();
+                        break;
+                    case MIDIMessage::ControlChangeType:
+                        break;
+                    case MIDIMessage::PitchWheelType:
+                        break;
+                    case MIDIMessage::SysExType:
+                        break;
+                    case MIDIMessage::ErrorType:
+                        break;
+                    default:
+                        break;
+                }
             }
             rx_midiPacket_box.free(midi_inbox);
+            packetbox_full = 0;
         }
     }
 }

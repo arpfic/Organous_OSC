@@ -163,8 +163,9 @@ typedef struct {
     uint8_t    midiPacket[MIDI_MAX_MSG_LENGTH]; /* AD result of measured voltage */
     int        midiPacketlenght = 0;
 } midiPacket_t;
-Mail<midiPacket_t, 128>  rx_midiPacket_box;
-midiPacket_t            *rx_midi_outbox;
+Mail<midiPacket_t, MIDIMAIL_SIZE>  rx_midiPacket_box;
+midiPacket_t                       *rx_midi_outbox;
+int                                packetbox_full = 0;
 
 // MIDI variables
 volatile int            rx_idx = 0;
