@@ -24,9 +24,12 @@ void menu_lowlevel();
 void menu_tools();
 void menu_midi();
 
-void menu_main_midi_noteOn(int port, int intensity);
-void menu_main_midi_noteOn_min(int port);
-void menu_main_midi_noteOff(int port);
+void menu_main_midi_noteOn_chA(int port, int intensity);
+void menu_main_midi_noteOn_chA_min(int port);
+void menu_main_midi_noteOff_chA(int port);
+void menu_main_midi_noteOn_chB(int port, int intensity);
+void menu_main_midi_noteOn_chB_min(int port);
+void menu_main_midi_noteOff_chB(int port);
 void menu_main_midi_allnoteOff();
 
 void menu_main_coil();
@@ -99,24 +102,27 @@ menu_cases tools_cases [] = {
 
 /* NOTE     : COIL FUNCTIONS, MODIFIED TO SUPPORT MIDI
  */
-void menu_main_midi_noteOn(int port, int intensity){
-    menu_main_midi_noteOn_min(port);
+void menu_main_midi_noteOn_chA(int port, int intensity){
+    menu_main_midi_noteOn_chA_min(port);
 }
 
-void menu_main_midi_noteOn_min(int port){
-    if (port >= IF_BASENOTE && port < IF_BASENOTE + A_SIDE_OUTS) {
+void menu_main_midi_noteOn_chA_min(int port){
+    if (port >= IF_BASENOTE && port < IF_BASENOTE + A_SIDE_OUTS &&
+                        port <= IF_BASENOTE + MIDI_CHANNEL_A_SIZE) {
         port = port - IF_BASENOTE;
         driver_A->coilOn(port);
 #if B_SIDE == 1
-    } else if (port >= IF_BASENOTE + 24 && port < IF_BASENOTE + B_SIDE_OUTS + 24) {
+    } else if (port >= IF_BASENOTE + 24 && port < IF_BASENOTE + B_SIDE_OUTS + 24 &&
+                        port <= IF_BASENOTE + MIDI_CHANNEL_A_SIZE) {
         port = port - IF_BASENOTE;
         driver_B->coilOn(port - 24);
 #endif
     }
 }
 
-void menu_main_midi_noteOff(int port){
-    if (port >= IF_BASENOTE && port < IF_BASENOTE + A_SIDE_OUTS) {
+void menu_main_midi_noteOff_chA(int port){
+    if (port >= IF_BASENOTE && port < IF_BASENOTE + A_SIDE_OUTS &&
+                        port <= IF_BASENOTE + MIDI_CHANNEL_A_SIZE) {
         port = port - IF_BASENOTE;
         driver_A->coilOff(port);
         if (debug_on) {
@@ -125,7 +131,50 @@ void menu_main_midi_noteOff(int port){
             debug_OSC(buf);
         }
 #if B_SIDE == 1
-    } else if (port >= IF_BASENOTE + 24 && port < IF_BASENOTE + B_SIDE_OUTS + 24) {
+    } else if (port >= IF_BASENOTE + 24 && port < IF_BASENOTE + B_SIDE_OUTS + 24 &&
+                        port <= IF_BASENOTE + MIDI_CHANNEL_A_SIZE) {
+        port = port - IF_BASENOTE;
+        driver_B->coilOff(port - 24);
+        if (debug_on) {
+            char buf[64];
+            sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_B->outRegister.reg_readUser(port - 24));
+            debug_OSC(buf);
+        }
+#endif
+    }
+}
+
+void menu_main_midi_noteOn_chB(int port, int intensity){
+    menu_main_midi_noteOn_chB_min(port);
+}
+
+void menu_main_midi_noteOn_chB_min(int port){
+    if (port >= IF_BASENOTE && port < IF_BASENOTE + A_SIDE_OUTS &&
+                        port > IF_BASENOTE + MIDI_CHANNEL_A_SIZE + MIDI_CHANNEL_B_OFFSET) {
+        port = port - IF_BASENOTE;
+        driver_A->coilOn(port);
+#if B_SIDE == 1
+    } else if (port >= IF_BASENOTE + 24 && port < IF_BASENOTE + B_SIDE_OUTS + 24 &&
+                        port > IF_BASENOTE + MIDI_CHANNEL_A_SIZE + MIDI_CHANNEL_B_OFFSET) {
+        port = port - IF_BASENOTE;
+        driver_B->coilOn(port - 24);
+#endif
+    }
+}
+
+void menu_main_midi_noteOff_chB(int port){
+    if (port >= IF_BASENOTE && port < IF_BASENOTE + A_SIDE_OUTS &&
+                        port > IF_BASENOTE + MIDI_CHANNEL_A_SIZE + MIDI_CHANNEL_B_OFFSET) {
+        port = port - IF_BASENOTE;
+        driver_A->coilOff(port);
+        if (debug_on) {
+            char buf[64];
+            sprintf(buf, "COIL %i : %i use(s)", port, (int)driver_A->outRegister.reg_readUser(port));
+            debug_OSC(buf);
+        }
+#if B_SIDE == 1
+    } else if (port >= IF_BASENOTE + 24 && port < IF_BASENOTE + B_SIDE_OUTS + 24 &&
+                        port > IF_BASENOTE + MIDI_CHANNEL_A_SIZE + MIDI_CHANNEL_B_OFFSET) {
         port = port - IF_BASENOTE;
         driver_B->coilOff(port - 24);
         if (debug_on) {

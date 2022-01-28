@@ -24,7 +24,7 @@
  * 1 : suraig
  * 2 : respi
  */
-#define OSC_BOARD                                   2
+#define OSC_BOARD                                   1
 #define SOFT_VER                                    "v0.3"
 
 #if OSC_BOARD == 1
@@ -141,6 +141,12 @@
     #define DRV_B_RST                               PG_5
     #define DRV_B_FAULT                             PC_9
 
+    #define MIDI_CHANNEL_A                          16
+    #define MIDI_CHANNEL_B                          8
+    // Number of notes on the first channel ; KISS, the second channel start here
+    #define MIDI_CHANNEL_A_SIZE                     11
+    #define MIDI_CHANNEL_B_OFFSET                   0
+
 #elif OSC_BOARD == 2
     // NOTE: On the RESPIRATOR, side A is a B card
     #define IF_NAME                                 "RESPIRATOR board"
@@ -216,6 +222,12 @@
 
     #define DRV_A_RST                               PG_5
     #define DRV_A_FAULT                             PC_9
+
+    #define MIDI_CHANNEL_A                          1
+    #define MIDI_CHANNEL_B                          NULL
+    #define MIDI_CHANNEL_A_SIZE                     24
+    #define MIDI_CHANNEL_B_OFFSET                   0
+
 #endif
 
 /* -----------------------------------------------------------------------------
@@ -223,10 +235,8 @@
  */
 #define MIDI_UART_TX                            PB_4
 #define MIDI_UART_RX                            PE_7
-#define MIDI_CHANNEL                            1
 #define MIDIMAIL_SIZE                           64
-#define MIDI_MAX_MSG_LENGTH                     5 // Max message size. SysEx can be up to 65536.
-#define MIDI_PAQUET_TIME_US                     (us_timestamp_t)500
+#define MIDI_MAX_MSG_LENGTH                     4 // Max message size. SysEx can be up to 65536.
 
 /* -----------------------------------------------------------------------------
  * NUCLEO_F767ZI LEDS

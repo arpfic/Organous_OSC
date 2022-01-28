@@ -37,6 +37,7 @@
 #include "tOSC.h"
 #include "MemoryPool.h"
 #include "MIDIMessage.h"
+#include <cstdint>
 
 // UDPSocket/TCPSocket Callbacks
 static void handle_udp_socket();
@@ -68,9 +69,6 @@ void sampler_timer();
 
 // Regrouping OSC task in a Thread
 void osc_task();
-
-// MIDI Timer function
-void midiNextByte_timer();
 
 // Callback for MIDI RX
 void on_rx_interrupt();
@@ -156,7 +154,6 @@ char    debug_on = 0;
 // MIDI Serial & Thread and Ticker for working with different packet lengths
 static RawSerial midi_din(MIDI_UART_TX, MIDI_UART_RX);
 Thread midiTask;
-Ticker midiNextByte;
 
 /* Mailbox of MIDI Packets */
 typedef struct {
@@ -166,6 +163,7 @@ typedef struct {
 Mail<midiPacket_t, MIDIMAIL_SIZE>  rx_midiPacket_box;
 midiPacket_t                       *rx_midi_outbox;
 int                                packetbox_full = 0;
+int                                rx_midi_Statusbyte = 0;
 
 // MIDI variables
 volatile int            rx_idx = 0;
